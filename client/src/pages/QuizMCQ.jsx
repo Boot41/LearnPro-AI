@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { CheckCircle, XCircle, HelpCircle, ArrowRight, Clock } from 'lucide-react';
+
+// Import smaller components
+import QuizTimer from '../components/quiz/QuizTimer';
+import QuizProgressBar from '../components/quiz/QuizProgressBar';
+import QuizQuestion from '../components/quiz/QuizQuestion';
+import QuizActions from '../components/quiz/QuizActions';
+import QuizResult from '../components/quiz/QuizResult';
+import QuizNotFound from '../components/quiz/QuizNotFound';
 
 // Mock MCQ quiz data
 const mcqQuizzes = {
@@ -106,7 +113,7 @@ const mcqQuizzes = {
   }
 };
 
-const QuizMCQ= () => {
+const QuizMCQ = () => {
   const { topicId } = useParams();
   const navigate = useNavigate();
   
@@ -149,24 +156,10 @@ const QuizMCQ= () => {
   }, [currentQuizData, quizCompleted]);
   
   if (!currentQuizData) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <HelpCircle className="h-12 w-12 text-indigo-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-700">Quiz not found</h2>
-          <p className="text-gray-500 mt-2">The requested quiz could not be loaded.</p>
-        </div>
-      </div>
-    );
+    return <QuizNotFound />;
   }
   
   const currentQuestion = currentQuizData.questions[currentQuestionIndex];
-  
-  const formatTime = (seconds) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
-  };
   
   const handleOptionSelect = (optionId) => {
     if (!isAnswerSubmitted) {
@@ -219,95 +212,15 @@ const QuizMCQ= () => {
     setQuizCompleted(true);
   };
   
-  // Calculate progress percentage
-  const progressPercentage = ((currentQuestionIndex + 1) / currentQuizData.questions.length) * 100;
-  
   if (quizCompleted) {
-    const totalQuestions = currentQuizData.questions.length;
-    const scorePercentage = (score / totalQuestions) * 100;
-    
     return (
-      <div className="bg-white rounded-lg shadow-lg max-w-2xl mx-auto p-8">
-        <div className="text-center mb-8">
-          <div className={`inline-flex items-center justify-center h-24 w-24 rounded-full ${
-            scorePercentage >= 70 ? 'bg-green-100' : 'bg-yellow-100'
-          }`}>
-            <span className={`text-3xl font-bold ${
-              scorePercentage >= 70 ? 'text-green-600' : 'text-yellow-600'
-            }`}>
-              {score}/{totalQuestions}
-            </span>
-          </div>
-          <h2 className="text-2xl font-bold mt-4">Quiz Completed!</h2>
-          <p className="text-gray-600 mt-2">
-            You scored {score} out of {totalQuestions} questions correctly.
-          </p>
-        </div>
-        
-        <div className="mb-8">
-          <div className="w-full bg-gray-200 rounded-full h-2.5">
-            <div 
-              className={`h-2.5 rounded-full ${
-                scorePercentage >= 70 ? 'bg-green-500' : 'bg-yellow-500'
-              }`}
-              style={{ width: `${scorePercentage}%` }}
-            ></div>
-          </div>
-          <div className="flex justify-between mt-2 text-sm text-gray-600">
-            <span>0%</span>
-            <span>Score: {Math.round(scorePercentage)}%</span>
-            <span>100%</span>
-          </div>
-        </div>
-        
-        <div className="space-y-6">
-          <h3 className="text-lg font-semibold text-gray-800">Question Summary</h3>
-          
-          {currentQuizData.questions.map((question, index) => {
-            const userAnswer = userAnswers[question.id] || '';
-            const isCorrect = userAnswer === question.correctAnswer;
-            
-            return (
-              <div key={question.id} className="bg-gray-50 p-4 rounded-lg">
-                <div className="flex items-start">
-                  <div className={`p-1 rounded-full ${isCorrect ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'} mt-1`}>
-                    {isCorrect ? <CheckCircle className="h-5 w-5" /> : <XCircle className="h-5 w-5" />}
-                  </div>
-                  <div className="ml-3">
-                    <p className="font-medium text-gray-800">
-                      {index + 1}. {question.question}
-                    </p>
-                    <div className="mt-2 space-y-1">
-                      {question.options.map((option) => (
-                        <div 
-                          key={option.id}
-                          className={`text-sm px-3 py-1 rounded ${
-                            option.id === question.correctAnswer ? 'bg-green-100 text-green-800' : 
-                            option.id === userAnswer && option.id !== question.correctAnswer ? 'bg-red-100 text-red-800' : 
-                            'text-gray-600'
-                          }`}
-                        >
-                          {option.id}. {option.text}
-                          {option.id === question.correctAnswer && ' (Correct)'}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-        
-        <div className="mt-8 flex justify-center">
-          <button
-            onClick={() => navigate('/dashboard')}
-            className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
-          >
-            Back to Dashboard
-          </button>
-        </div>
-      </div>
+      <QuizResult
+        score={score}
+        totalQuestions={currentQuizData.questions.length}
+        questions={currentQuizData.questions}
+        userAnswers={userAnswers}
+        onBackToDashboard={() => navigate('/dashboard')}
+      />
     );
   }
   
@@ -315,94 +228,33 @@ const QuizMCQ= () => {
     <div className="bg-white rounded-lg shadow-lg max-w-2xl mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold text-gray-800">{currentQuizData.topicName}</h2>
-        <div className="flex items-center text-gray-600">
-          <Clock className="h-5 w-5 mr-1" />
-          <span>{formatTime(timeRemaining)}</span>
-        </div>
+        <QuizTimer timeRemaining={timeRemaining} />
       </div>
       
       {/* Progress bar */}
-      <div className="mb-6">
-        <div className="w-full bg-gray-200 rounded-full h-2.5">
-          <div 
-            className="bg-indigo-600 h-2.5 rounded-full" 
-            style={{ width: `${progressPercentage}%` }}
-          ></div>
-        </div>
-        <div className="flex justify-between mt-2 text-xs text-gray-500">
-          <span>Question {currentQuestionIndex + 1} of {currentQuizData.questions.length}</span>
-          <span>{Math.round(progressPercentage)}% Complete</span>
-        </div>
-      </div>
+      <QuizProgressBar 
+        currentQuestion={currentQuestionIndex} 
+        totalQuestions={currentQuizData.questions.length} 
+      />
       
       {/* Question */}
-      <div className="mb-6">
-        <h3 className="text-lg font-medium text-gray-800 mb-4">{currentQuestion.question}</h3>
-        
-        <div className="space-y-3">
-          {currentQuestion.options.map((option) => (
-            <button
-              key={option.id}
-              onClick={() => handleOptionSelect(option.id)}
-              disabled={isAnswerSubmitted}
-              className={`w-full text-left p-4 rounded-lg border ${
-                selectedOption === option.id && isAnswerSubmitted && option.id === currentQuestion.correctAnswer
-                  ? 'bg-green-100 border-green-300'
-                : selectedOption === option.id && isAnswerSubmitted
-                  ? 'bg-red-100 border-red-300'
-                : selectedOption === option.id
-                  ? 'bg-indigo-100 border-indigo-300'
-                  : 'bg-white border-gray-200 hover:bg-gray-50'
-              }`}
-            >
-              <div className="flex items-center">
-                <div className={`flex-shrink-0 h-5 w-5 rounded-full border ${
-                  selectedOption === option.id ? 'border-indigo-600 bg-indigo-600' : 'border-gray-300'
-                } mr-3`}>
-                  {selectedOption === option.id && (
-                    <span className="flex items-center justify-center h-full w-full">
-                      <span className="h-2 w-2 rounded-full bg-white"></span>
-                    </span>
-                  )}
-                </div>
-                <span>{option.text}</span>
-                
-                {isAnswerSubmitted && option.id === currentQuestion.correctAnswer && (
-                  <CheckCircle className="h-5 w-5 text-green-600 ml-auto" />
-                )}
-                {isAnswerSubmitted && selectedOption === option.id && option.id !== currentQuestion.correctAnswer && (
-                  <XCircle className="h-5 w-5 text-red-600 ml-auto" />
-                )}
-              </div>
-            </button>
-          ))}
-        </div>
-      </div>
+      <QuizQuestion
+        question={currentQuestion.question}
+        options={currentQuestion.options}
+        selectedOption={selectedOption}
+        isAnswerSubmitted={isAnswerSubmitted}
+        correctAnswer={currentQuestion.correctAnswer}
+        onSelectOption={handleOptionSelect}
+      />
       
       {/* Actions */}
-      <div className="flex justify-between items-center">
-        {!isAnswerSubmitted ? (
-          <button
-            onClick={handleSubmitAnswer}
-            disabled={!selectedOption}
-            className={`px-6 py-2 rounded-md ${
-              selectedOption
-                ? 'bg-indigo-600 text-white hover:bg-indigo-700'
-                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-            }`}
-          >
-            Submit Answer
-          </button>
-        ) : (
-          <button
-            onClick={handleNextQuestion}
-            className="flex items-center px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
-          >
-            {currentQuestionIndex < currentQuizData.questions.length - 1 ? 'Next Question' : 'Finish Quiz'}
-            <ArrowRight className="h-4 w-4 ml-1" />
-          </button>
-        )}
-      </div>
+      <QuizActions
+        isAnswerSubmitted={isAnswerSubmitted}
+        selectedOption={selectedOption}
+        onSubmitAnswer={handleSubmitAnswer}
+        onNextQuestion={handleNextQuestion}
+        isLastQuestion={currentQuestionIndex === currentQuizData.questions.length - 1}
+      />
     </div>
   );
 };

@@ -30,14 +30,13 @@ const ProtectedRoute = ({ children, requiredRole }) => {
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          
-          <Route path="/" element={<Layout />}>
-            {/* Admin Routes */}
-            <Route 
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        
+        <Route path="/" element={<Layout />}>
+          {/* Admin Routes */}
+          <Route 
               path="/admin" 
               element={
                 <ProtectedRoute requiredRole="admin">
@@ -93,7 +92,6 @@ function App() {
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
-      </Router>
     </AuthProvider>
   );
 }
