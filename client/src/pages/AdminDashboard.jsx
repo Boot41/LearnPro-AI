@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { BarChart2, Users, BookOpen, PlusCircle, X } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
@@ -26,9 +26,19 @@ const chartData = [
 const AdminDashboard = () => {
   const [showAddEmployeeModal, setShowAddEmployeeModal] = useState(false);
   const [showAddProjectModal, setShowAddProjectModal] = useState(false);
-  
+  useEffect(() => {
+    if (showAddEmployeeModal || showAddProjectModal) {
+      document.body.classList.add("overflow-hidden");
+    } else {
+      document.body.classList.remove("overflow-hidden");
+    }
+    
+    return () => {
+      document.body.classList.remove("overflow-hidden");
+    };
+  }, [showAddProjectModal,showAddEmployeeModal]); 
   return (
-    <div className="space-y-6">
+    <div className={"space-y-6 "} >
       {/* Stats overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white rounded-lg shadow p-6">
