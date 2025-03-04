@@ -1,7 +1,7 @@
 import os
 import json
 import requests
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 def generate_assignment_questions(topic: str, subject: str) -> Dict[str, Any]:
     """
