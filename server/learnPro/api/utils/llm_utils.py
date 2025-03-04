@@ -3,7 +3,7 @@ import json
 import requests
 from typing import Dict, Any, List
 
-def generate_assignment_questions(topic: str, subject: str) -> Dict[str, Any]:
+def generate_assignment_questions(subjects):
     """
     Generate assignment questions using Groq's LLM API
     """
@@ -11,8 +11,13 @@ def generate_assignment_questions(topic: str, subject: str) -> Dict[str, Any]:
     if not GROQ_API_KEY:
         raise ValueError("GROQ_API_KEY environment variable is not set")
 
-    prompt = f"""Generate a multiple choice quiz for {subject} focusing on {topic}. 
-    Create 3 questions with 4 options each and one correct answer.
+    subject_text = "\n\n".join(
+    f"Subject: {subject['subject_name']}\nTopics: {', '.join(subject['topics'])}"
+    for subject in subjects
+    )
+
+    prompt = f"""Generate a multiple choice quiz for the following subjects: \n\n{subject_text}. 
+    Create questions that cover the topics with 4 options each and one correct answer.
     Return the response in the following JSON format:
     {{
         "title": "Quiz title",

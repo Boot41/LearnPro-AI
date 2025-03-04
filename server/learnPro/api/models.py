@@ -8,32 +8,26 @@ class Project(models.Model):
     """
     Project model representing a project in the system.
     
-    Fields:
-    - project_name: The name of the project
-    - project_description: A detailed description of the project
-    - required_skills: Skills required for the project (stored as comma-separated string)
+    - project_name (string): The name of the project.
+    - project_description (string): A detailed description of the project.
+    - subjects (array of objects): The subjects that will be covered in the project.
+        - subject_name (string): The name of the subject.
+        - topics (array of strings): The topics that will be covered in the subject.
     """
+    id = models.AutoField(primary_key=True)
     project_name = models.CharField(max_length=255)
     project_description = models.TextField()
-    required_skills = models.TextField()  # Stored as comma-separated string
+    subjects = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
     
     def __str__(self):
         return self.project_name
     
-    def get_skills_as_list(self):
-        """Return the required_skills as a list of strings"""
-        if not self.required_skills:
-            return []
-        return [skill.strip() for skill in self.required_skills.split(',')]
+    @property
+    def subjects_data(self):
+        """Return the subjects as a Python object"""
+        return json.loads(self.subjects)
     
-    def set_skills_from_list(self, skills_list):
-        """Set required_skills from a list of strings"""
-        if isinstance(skills_list, list):
-            self.required_skills = ', '.join(skills_list)
-        else:
-            self.required_skills = skills_list
 
 
 class LearningPath(models.Model):
@@ -46,12 +40,20 @@ class LearningPath(models.Model):
     - total_estimated_hours: Total estimated hours for completion
     - topics: Topics included in the learning path (stored as JSON)
     - calendar_locked: Whether the calendar/schedule is locked
+    - project: The project this learning path is for
     """
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     total_estimated_hours = models.PositiveIntegerField(default=0)
     topics = models.TextField()  # Stored as JSON
     calendar_locked = models.BooleanField(default=False)
+    project = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='learning_paths'
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -78,12 +80,23 @@ class Quiz(models.Model):
     - subject: The subject area of the quiz
     - topic: The specific topic(s) of the quiz
     - questions: The quiz questions and answers (stored as JSON)
+    - project: The project this quiz is associated with (for knowledge assessment)
     - user: The user who the quiz belongs to (can be null for system-generated quizzes)
+    - is_knowledge_assessment: Whether this quiz is a knowledge assessment quiz
+    - completed: Whether the user has completed this quiz
+    - score: The user's score on this quiz (if completed)
     """
     title = models.CharField(max_length=255)
     subject = models.CharField(max_length=255)
     topic = models.CharField(max_length=255)
     questions = models.TextField()  # Stored as JSON
+    project = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='quizzes'
+    )
     user = models.ForeignKey(
         'User',
         on_delete=models.CASCADE,
@@ -91,6 +104,9 @@ class Quiz(models.Model):
         blank=True,
         related_name='quizzes'
     )
+    is_knowledge_assessment = models.BooleanField(default=False)
+    completed = models.BooleanField(default=False)
+    score = models.IntegerField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -115,6 +131,7 @@ class User(AbstractUser):
     Additional Fields:
     - is_first_login: Whether this is the user's first login
     - learning_path: One-to-one relationship with a LearningPath
+    - has_taken_assessment: Whether the user has taken the knowledge assessment
     """
     # Add related_name attributes to avoid clashes with auth.User
     groups = models.ManyToManyField(
@@ -133,6 +150,7 @@ class User(AbstractUser):
     )
     
     is_first_login = models.BooleanField(default=True)
+    has_taken_assessment = models.BooleanField(default=False)
     learning_path = models.OneToOneField(
         LearningPath, 
         on_delete=models.SET_NULL, 

@@ -5,7 +5,8 @@ from .views import (
     add_employee, 
     user_login, 
     assign_project_to_employee, 
-    remove_project_from_employee
+    remove_project_from_employee,
+    submit_assessment_quiz
 )
 
 urlpatterns = [
@@ -15,4 +16,5 @@ urlpatterns = [
     path('login/', user_login, name='user_login'),
     path('employees/<int:employee_id>/assign_project/', assign_project_to_employee, name='assign_project_to_employee'),
     path('employees/<int:employee_id>/project/', remove_project_from_employee, name='remove_project_from_employee'),
+    path('quiz/<int:quiz_id>/submit/', submit_assessment_quiz, name='submit_assessment_quiz'),
 ]
