@@ -1,87 +1,113 @@
 import React from 'react';
-import { CheckCircle, XCircle } from 'lucide-react';
+import { CheckCircle, XCircle, Award, RotateCcw, Home } from 'lucide-react';
 
-const QuizResult = ({ score, totalQuestions, questions, userAnswers, onBackToDashboard }) => {
-  const scorePercentage = (score / totalQuestions) * 100;
-  
+const QuizResult = ({ results, onRetry, onBackToDashboard }) => {
+  const { 
+    score, 
+    correctCount, 
+    totalQuestions, 
+    passed, 
+    passingScore, 
+    topicName,
+    detailedResults 
+  } = results;
+
   return (
-    <div className="bg-white rounded-lg shadow-lg max-w-2xl mx-auto p-8">
-      <div className="text-center mb-8">
-        <div className={`inline-flex items-center justify-center h-24 w-24 rounded-full ${
-          scorePercentage >= 70 ? 'bg-green-100' : 'bg-yellow-100'
-        }`}>
-          <span className={`text-3xl font-bold ${
-            scorePercentage >= 70 ? 'text-green-600' : 'text-yellow-600'
-          }`}>
-            {score}/{totalQuestions}
-          </span>
+    <div className="max-w-3xl mx-auto bg-white rounded-lg shadow p-6">
+      <div className="text-center mb-6">
+        <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full ${
+          passed ? 'bg-green-100' : 'bg-red-100'
+        } mb-4`}>
+          {passed ? (
+            <Award className={`h-8 w-8 text-green-600`} />
+          ) : (
+            <XCircle className={`h-8 w-8 text-red-600`} />
+          )}
         </div>
-        <h2 className="text-2xl font-bold mt-4">Quiz Completed!</h2>
+        
+        <h1 className="text-2xl font-bold text-gray-900">
+          {passed ? 'Congratulations!' : 'Better Luck Next Time'}
+        </h1>
+        
         <p className="text-gray-600 mt-2">
-          You scored {score} out of {totalQuestions} questions correctly.
+          {passed 
+            ? `You passed the ${topicName} quiz with a score of ${score}%.` 
+            : `You didn't pass the ${topicName} quiz. The passing score is ${passingScore}%.`}
         </p>
       </div>
       
-      <div className="mb-8">
-        <div className="w-full bg-gray-200 rounded-full h-2.5">
-          <div 
-            className={`h-2.5 rounded-full ${
-              scorePercentage >= 70 ? 'bg-green-500' : 'bg-yellow-500'
-            }`}
-            style={{ width: `${scorePercentage}%` }}
-          ></div>
-        </div>
-        <div className="flex justify-between mt-2 text-sm text-gray-600">
-          <span>0%</span>
-          <span>Score: {Math.round(scorePercentage)}%</span>
-          <span>100%</span>
+      {/* Score overview */}
+      <div className="bg-gray-50 rounded-lg p-4 mb-6">
+        <div className="grid grid-cols-3 gap-4 text-center">
+          <div>
+            <div className="text-3xl font-bold text-indigo-600">{score}%</div>
+            <div className="text-sm text-gray-500">Your Score</div>
+          </div>
+          <div>
+            <div className="text-3xl font-bold text-indigo-600">{correctCount}</div>
+            <div className="text-sm text-gray-500">Correct Answers</div>
+          </div>
+          <div>
+            <div className="text-3xl font-bold text-indigo-600">{passingScore}%</div>
+            <div className="text-sm text-gray-500">Passing Score</div>
+          </div>
         </div>
       </div>
       
-      <div className="space-y-6">
-        <h3 className="text-lg font-semibold text-gray-800">Question Summary</h3>
-        
-        {questions.map((question, index) => {
-          const userAnswer = userAnswers[question.id] || '';
-          const isCorrect = userAnswer === question.correctAnswer;
-          
-          return (
-            <div key={question.id} className="bg-gray-50 p-4 rounded-lg">
-              <div className="flex items-start">
-                <div className={`p-1 rounded-full ${isCorrect ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'} mt-1`}>
-                  {isCorrect ? <CheckCircle className="h-5 w-5" /> : <XCircle className="h-5 w-5" />}
-                </div>
-                <div className="ml-3">
-                  <p className="font-medium text-gray-800">
-                    {index + 1}. {question.question}
-                  </p>
-                  <div className="mt-2 space-y-1">
-                    {question.options.map((option) => (
-                      <div 
-                        key={option.id}
-                        className={`text-sm px-3 py-1 rounded ${
-                          option.id === question.correctAnswer ? 'bg-green-100 text-green-800' : 
-                          option.id === userAnswer && option.id !== question.correctAnswer ? 'bg-red-100 text-red-800' : 
-                          'text-gray-600'
-                        }`}
-                      >
-                        {option.id}. {option.text}
-                        {option.id === question.correctAnswer && ' (Correct)'}
+      {/* Details of answers */}
+      {detailedResults && (
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">Question Details</h2>
+          <div className="space-y-4">
+            {detailedResults.map((item) => (
+              <div 
+                key={item.questionId} 
+                className={`p-4 rounded-lg border ${
+                  item.isCorrect ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'
+                }`}
+              >
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 mt-0.5">
+                    {item.isCorrect ? (
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                    ) : (
+                      <XCircle className="h-5 w-5 text-red-600" />
+                    )}
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm font-medium text-gray-900">{item.question}</p>
+                    {!item.isCorrect && (
+                      <div className="mt-1">
+                        <p className="text-xs text-gray-500">
+                          Your answer: {item.userAnswer ? detailedResults.find(q => q.questionId === item.questionId)?.options?.find(o => o.id === item.userAnswer)?.text || 'None'  : 'None'}
+                        </p>
+                        <p className="text-xs text-green-600 mt-1">
+                          Correct answer: {item.correctAnswer ? detailedResults.find(q => q.questionId === item.questionId)?.options?.find(o => o.id === item.correctAnswer)?.text || 'Unknown' : 'Unknown'}
+                        </p>
                       </div>
-                    ))}
+                    )}
                   </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            ))}
+          </div>
+        </div>
+      )}
       
-      <div className="mt-8 flex justify-center">
+      {/* Actions */}
+      <div className="flex flex-col sm:flex-row sm:justify-between gap-3">
+        <button
+          onClick={onRetry}
+          className="flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200"
+        >
+          <RotateCcw className="h-4 w-4 mr-2" />
+          Retry Quiz
+        </button>
         <button
           onClick={onBackToDashboard}
-          className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+          className="flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
         >
+          <Home className="h-4 w-4 mr-2" />
           Back to Dashboard
         </button>
       </div>

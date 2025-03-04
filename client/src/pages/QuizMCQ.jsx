@@ -9,137 +9,52 @@ import QuizActions from '../components/quiz/QuizActions';
 import QuizResult from '../components/quiz/QuizResult';
 import QuizNotFound from '../components/quiz/QuizNotFound';
 
-// Mock MCQ quiz data
-const mcqQuizzes = {
-  '1': {
-    topicName: 'JavaScript Fundamentals MCQ',
-    timeLimit: 10, // minutes
-    questions: [
-      {
-        id: '1',
-        question: 'Which of the following is a primitive data type in JavaScript?',
-        options: [
-          { id: 'a', text: 'Array' },
-          { id: 'b', text: 'Object' },
-          { id: 'c', text: 'String' },
-          { id: 'd', text: 'Function' }
-        ],
-        correctAnswer: 'c'
-      },
-      {
-        id: '2',
-        question: 'What is the output of: console.log(2 + "2")?',
-        options: [
-          { id: 'a', text: '4' },
-          { id: 'b', text: '22' },
-          { id: 'c', text: 'Error' },
-          { id: 'd', text: 'undefined' }
-        ],
-        correctAnswer: 'b'
-      },
-      {
-        id: '3',
-        question: 'Which method is used to serialize an object into a JSON string?',
-        options: [
-          { id: 'a', text: 'JSON.stringify()' },
-          { id: 'b', text: 'JSON.parse()' },
-          { id: 'c', text: 'JSON.toText()' },
-          { id: 'd', text: 'JSON.serialize()' }
-        ],
-        correctAnswer: 'a'
-      },
-      {
-        id: '4',
-        question: 'What does the "use strict" directive do in JavaScript?',
-        options: [
-          { id: 'a', text: 'Enforces stricter parsing and error handling' },
-          { id: 'b', text: 'Makes the code run faster' },
-          { id: 'c', text: 'Allows the use of experimental features' },
-          { id: 'd', text: 'Prevents the use of functions' }
-        ],
-        correctAnswer: 'a'
-      }
-    ]
-  },
-  '2': {
-    topicName: 'React Basics MCQ',
-    timeLimit: 10, // minutes
-    questions: [
-      {
-        id: '1',
-        question: 'What is React?',
-        options: [
-          { id: 'a', text: 'A JavaScript library for building user interfaces' },
-          { id: 'b', text: 'A programming language' },
-          { id: 'c', text: 'A database management system' },
-          { id: 'd', text: 'A server-side framework' }
-        ],
-        correctAnswer: 'a'
-      },
-      {
-        id: '2',
-        question: 'What is the virtual DOM in React?',
-        options: [
-          { id: 'a', text: 'A direct copy of the real DOM' },
-          { id: 'b', text: 'A lightweight JavaScript representation of the DOM' },
-          { id: 'c', text: 'A browser extension for React' },
-          { id: 'd', text: 'A debugging tool' }
-        ],
-        correctAnswer: 'b'
-      },
-      {
-        id: '3',
-        question: 'Which of the following is NOT a React hook?',
-        options: [
-          { id: 'a', text: 'useState' },
-          { id: 'b', text: 'useEffect' },
-          { id: 'c', text: 'useComponent' },
-          { id: 'd', text: 'useContext' }
-        ],
-        correctAnswer: 'c'
-      },
-      {
-        id: '4',
-        question: 'What is the purpose of React fragments?',
-        options: [
-          { id: 'a', text: 'To split code into multiple files' },
-          { id: 'b', text: 'To group a list of children without adding extra nodes to the DOM' },
-          { id: 'c', text: 'To create reusable components' },
-          { id: 'd', text: 'To optimize rendering performance' }
-        ],
-        correctAnswer: 'b'
-      }
-    ]
-  }
-};
+// Import quiz service
+import { getMCQQuizByTopicId, submitQuizAnswers } from '../services';
 
 const QuizMCQ = () => {
   const { topicId } = useParams();
   const navigate = useNavigate();
   
+  const [loading, setLoading] = useState(true);
   const [currentQuizData, setCurrentQuizData] = useState(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState(null);
   const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
   const [userAnswers, setUserAnswers] = useState({});
   const [quizCompleted, setQuizCompleted] = useState(false);
-  const [score, setScore] = useState(0);
+  const [quizResults, setQuizResults] = useState(null);
   const [timeRemaining, setTimeRemaining] = useState(0);
+  const [error, setError] = useState(null);
   
   useEffect(() => {
-    if (topicId && mcqQuizzes[topicId]) {
-      const quizData = mcqQuizzes[topicId];
-      setCurrentQuizData(quizData);
-      setTimeRemaining(quizData.timeLimit * 60); // Convert minutes to seconds
+    const fetchQuizData = async () => {
+      setLoading(true);
+      try {
+        const quizData = await getMCQQuizByTopicId(topicId);
+        setCurrentQuizData(quizData);
+        setTimeRemaining(quizData.timeLimit * 60); // Convert minutes to seconds
+        setError(null);
+      } catch (error) {
+        console.error("Error fetching quiz data:", error);
+        setError("Failed to load quiz. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    if (topicId) {
+      fetchQuizData();
     } else {
       // Handle invalid topic ID
-      navigate('/dashboard');
+      setError("Invalid topic ID");
+      setLoading(false);
     }
-  }, [topicId, navigate]);
+  }, [topicId]);
   
   // Timer effect
   useEffect(() => {
-    if (!currentQuizData || quizCompleted) return;
+    if (!currentQuizData || quizCompleted || loading) return;
     
     const timer = setInterval(() => {
       setTimeRemaining(prev => {
@@ -153,10 +68,18 @@ const QuizMCQ = () => {
     }, 1000);
     
     return () => clearInterval(timer);
-  }, [currentQuizData, quizCompleted]);
+  }, [currentQuizData, quizCompleted, loading]);
   
-  if (!currentQuizData) {
-    return <QuizNotFound />;
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
+  
+  if (error || !currentQuizData) {
+    return <QuizNotFound message={error || "Quiz not found"} />;
   }
   
   const currentQuestion = currentQuizData.questions[currentQuestionIndex];
@@ -177,11 +100,6 @@ const QuizMCQ = () => {
         [currentQuestion.id]: selectedOption
       });
       
-      // Update score if correct
-      if (isCorrect) {
-        setScore(prevScore => prevScore + 1);
-      }
-      
       setIsAnswerSubmitted(true);
     }
   };
@@ -193,51 +111,78 @@ const QuizMCQ = () => {
       setIsAnswerSubmitted(false);
     } else {
       // Quiz completed
-      setQuizCompleted(true);
+      handleFinishQuiz();
     }
   };
   
-  const handleFinishQuiz = () => {
-    // Calculate final score
-    let finalScore = 0;
-    
-    Object.keys(userAnswers).forEach(questionId => {
-      const question = currentQuizData.questions.find((q) => q.id === questionId);
-      if (question && userAnswers[questionId] === question.correctAnswer) {
-        finalScore++;
-      }
-    });
-    
-    setScore(finalScore);
+  const handleFinishQuiz = async () => {
     setQuizCompleted(true);
+    
+    try {
+      // Submit answers to get results
+      const results = await submitQuizAnswers(topicId, userAnswers);
+      setQuizResults(results);
+    } catch (error) {
+      console.error("Error submitting quiz:", error);
+      // Create basic results even if submission fails
+      const correctCount = currentQuizData.questions.filter(
+        q => userAnswers[q.id] === q.correctAnswer
+      ).length;
+      
+      setQuizResults({
+        topicId,
+        topicName: currentQuizData.topicName,
+        score: Math.round((correctCount / currentQuizData.questions.length) * 100),
+        correctCount,
+        totalQuestions: currentQuizData.questions.length,
+        passingScore: currentQuizData.passingScore,
+        passed: (correctCount / currentQuizData.questions.length) * 100 >= currentQuizData.passingScore
+      });
+    }
   };
   
-  if (quizCompleted) {
+  const handleRetry = () => {
+    // Reset quiz state
+    setCurrentQuestionIndex(0);
+    setSelectedOption(null);
+    setIsAnswerSubmitted(false);
+    setUserAnswers({});
+    setQuizCompleted(false);
+    setQuizResults(null);
+    setTimeRemaining(currentQuizData.timeLimit * 60);
+  };
+  
+  const handleBackToDashboard = () => {
+    navigate('/dashboard');
+  };
+  
+  // Show results if quiz is completed
+  if (quizCompleted && quizResults) {
     return (
       <QuizResult
-        score={score}
-        totalQuestions={currentQuizData.questions.length}
-        questions={currentQuizData.questions}
-        userAnswers={userAnswers}
-        onBackToDashboard={() => navigate('/dashboard')}
+        results={quizResults}
+        onRetry={handleRetry}
+        onBackToDashboard={handleBackToDashboard}
       />
     );
   }
   
   return (
-    <div className="bg-white rounded-lg shadow-lg max-w-2xl mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-gray-800">{currentQuizData.topicName}</h2>
-        <QuizTimer timeRemaining={timeRemaining} />
+    <div className="max-w-3xl mx-auto bg-white rounded-lg shadow p-6">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">{currentQuizData.topicName}</h1>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-gray-500 mb-2 sm:mb-0">
+            Question {currentQuestionIndex + 1} of {currentQuizData.questions.length}
+          </p>
+          <QuizTimer timeRemaining={timeRemaining} />
+        </div>
+        <QuizProgressBar 
+          current={currentQuestionIndex + 1} 
+          total={currentQuizData.questions.length} 
+        />
       </div>
       
-      {/* Progress bar */}
-      <QuizProgressBar 
-        currentQuestion={currentQuestionIndex} 
-        totalQuestions={currentQuizData.questions.length} 
-      />
-      
-      {/* Question */}
       <QuizQuestion
         question={currentQuestion.question}
         options={currentQuestion.options}
@@ -247,13 +192,13 @@ const QuizMCQ = () => {
         onSelectOption={handleOptionSelect}
       />
       
-      {/* Actions */}
       <QuizActions
+        isLastQuestion={currentQuestionIndex === currentQuizData.questions.length - 1}
         isAnswerSubmitted={isAnswerSubmitted}
-        selectedOption={selectedOption}
+        hasSelectedOption={!!selectedOption}
         onSubmitAnswer={handleSubmitAnswer}
         onNextQuestion={handleNextQuestion}
-        isLastQuestion={currentQuestionIndex === currentQuizData.questions.length - 1}
+        onFinishQuiz={handleFinishQuiz}
       />
     </div>
   );
