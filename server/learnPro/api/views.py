@@ -8,6 +8,7 @@ from .models import Project, Employee, User, LearningPath, Quiz
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from .utils.llm_utils import generate_learning_path, generate_assignment_questions
+from django.contrib.auth.hashers import make_password
 
 def sample_api(request):
     return JsonResponse({'message': 'Hello, World!'})
@@ -252,17 +253,17 @@ def add_employee(request):
 @require_http_methods(["POST"])
 def user_login(request):
     """
-    Endpoint for user login, which checks if the user needs to take a knowledge assessment quiz.
+    Endpoint for user login.
     
     HTTP Method: POST
     URL: /api/login/
     
     Request Body:
-    - username (string): The username of the user.
+    - email (string): The user's email address
     - password (string): The password of the user.
     
     Response:
-    - 200 OK: Login successful with user details and assessment quiz if needed.
+    - 200 OK: Login successful with user details.
     - 400 Bad Request: Invalid input data.
     - 401 Unauthorized: Invalid credentials.
     - 500 Internal Server Error: Server-side error.
@@ -272,110 +273,32 @@ def user_login(request):
         data = json.loads(request.body)
         
         # Validate required fields
-        if not data.get('username'):
-            return JsonResponse({'error': 'Username is required'}, status=400)
+        if not data.get('email'):
+            return JsonResponse({'error': 'Email is required'}, status=400)
         
         if not data.get('password'):
             return JsonResponse({'error': 'Password is required'}, status=400)
         
-        # Authenticate user
-        user = authenticate(username=data['username'], password=data['password'])
+        # Authenticate user using email
+        user = authenticate(request, username=data['email'], password=data['password'])
         
-        if not user:
-            # Invalid credentials
-            return JsonResponse({'error': 'Invalid username or password'}, status=401)
+        if user is None:
+            return JsonResponse({'error': 'Invalid credentials'}, status=401)
         
-        # Get employee information if available
-        employee_data = None
-        try:
-            employee = user.employee
-            employee_data = {
-                'id': employee.id,
-                'employee_name': employee.employee_name,
-                'employee_email': employee.employee_email
-            }
-            
-            # Add current project details if assigned
-            if employee.current_project:
-                employee_data['current_project'] = {
-                    'id': employee.current_project.id,
-                    'project_name': employee.current_project.project_name
-                }
-        except:
-            # No employee profile associated with this user
-            pass
-        
-        # Check if this is a first-time login and the user has not taken the assessment
-        assessment_needed = False
-        assessment_quiz = None
-        learning_path_data = None
-        
-        if user.is_first_login and employee and employee.current_project and not user.has_taken_assessment:
-            # User needs to take knowledge assessment quiz
-            assessment_needed = True
-            
-            # Get the knowledge assessment quizzes for the assigned project
-            project_quizzes = Quiz.objects.filter(
-                project=employee.current_project,
-                is_knowledge_assessment=True
-            )
-            
-            if project_quizzes.exists():
-                # Take the first quiz for simplicity (in a more complex app, we might assign specific quizzes)
-                quiz = project_quizzes.first()
-                
-                # Prepare the quiz data
-                assessment_quiz = {
-                    'id': quiz.id,
-                    'title': quiz.title,
-                    'topic': quiz.topic,
-                    'subject': quiz.subject,
-                    'questions': quiz.get_questions()
-                }
-        
-        # Check if the user already has a learning path
-        if user.learning_path:
-            learning_path = user.learning_path
-            learning_path_data = {
-                'id': learning_path.id,
-                'title': learning_path.title,
-                'description': learning_path.description,
-                'total_estimated_hours': learning_path.total_estimated_hours,
-                'topics': learning_path.get_topics(),
-                'calendar_locked': learning_path.calendar_locked
-            }
-        
-        # Return success response with user details and assessment info
-        response_data = {
-            'message': 'Login successful',
+        # Return user data
+        return JsonResponse({
             'user': {
                 'id': user.id,
-                'username': user.username,
                 'email': user.email,
                 'first_name': user.first_name,
                 'last_name': user.last_name,
-                'is_first_login': user.is_first_login,
-                'has_taken_assessment': user.has_taken_assessment
-            },
-            'employee': employee_data,
-            'assessment_needed': assessment_needed,
-            'learning_path': learning_path_data
-        }
+                'is_staff': user.is_staff
+            }
+        }, status=200)
         
-        # Add assessment quiz if needed
-        if assessment_needed and assessment_quiz:
-            response_data['assessment_quiz'] = assessment_quiz
-        
-        return JsonResponse(response_data, status=200)
-        
-    except ValidationError as e:
-        # Handle validation errors
-        return JsonResponse({'error': str(e)}, status=400)
     except json.JSONDecodeError:
-        # Handle invalid JSON
         return JsonResponse({'error': 'Invalid JSON format'}, status=400)
     except Exception as e:
-        # Handle other exceptions
         return JsonResponse({'error': f'An error occurred: {str(e)}'}, status=500)
 
 
@@ -677,131 +600,192 @@ def generate_user_learning_path(user):
             return fallback_path
 
 
-# @csrf_exempt
-# @require_http_methods(["PUT"])
-# def assign_project_to_employee(request, employee_id):
-    # """
-    # Endpoint to assign a project to an employee, enforcing the single-project rule.
+@csrf_exempt
+@require_http_methods(["PUT"])
+def assign_project_to_employee(request, employee_id):
+    """
+    Endpoint to assign a project to an employee, enforcing the single-project rule.
     
-    # HTTP Method: PUT
-    # URL: /api/employees/{employee_id}/assign_project/
+    HTTP Method: PUT
+    URL: /api/employees/{employee_id}/assign_project/
     
-    # Request Body:
-    # - project_id (int): The ID of the project to assign.
-    # - force (boolean, optional): Whether to force assignment even if the employee already has a project.
+    Request Body:
+    - project_id (int): The ID of the project to assign.
+    - force (boolean, optional): Whether to force assignment even if the employee already has a project.
     
-    # Response:
-    # - 200 OK: Project assigned successfully with employee details.
-    # - 400 Bad Request: Invalid input data or employee already has a project.
-    # - 404 Not Found: Employee or project not found.
-    # - 500 Internal Server Error: Server-side error.
-    # """
-    # try:
-    #     # Try to get the employee
-    #     try:
-    #         employee = Employee.objects.get(id=employee_id)
-    #     except Employee.DoesNotExist:
-    #         return JsonResponse({'error': f'Employee not found with ID: {employee_id}'}, status=404)
+    Response:
+    - 200 OK: Project assigned successfully with employee details.
+    - 400 Bad Request: Invalid input data or employee already has a project.
+    - 404 Not Found: Employee or project not found.
+    - 500 Internal Server Error: Server-side error.
+    """
+    try:
+        # Try to get the employee
+        try:
+            employee = Employee.objects.get(id=employee_id)
+        except Employee.DoesNotExist:
+            return JsonResponse({'error': f'Employee not found with ID: {employee_id}'}, status=404)
         
-    #     # Parse the request body
-    #     data = json.loads(request.body)
+        # Parse the request body
+        data = json.loads(request.body)
         
-    #     # Validate required fields
-    #     if not data.get('project_id'):
-    #         return JsonResponse({'error': 'Project ID is required'}, status=400)
+        # Validate required fields
+        if not data.get('project_id'):
+            return JsonResponse({'error': 'Project ID is required'}, status=400)
         
-    #     # Check if the employee already has a project assigned
-    #     if employee.current_project and not data.get('force', False):
-    #         return JsonResponse({
-    #             'error': 'Employee already has a project assigned. Use force=true to reassign.',
-    #             'current_project': {
-    #                 'id': employee.current_project.id,
-    #                 'project_name': employee.current_project.project_name
-    #             }
-    #         }, status=400)
+        # Check if the employee already has a project assigned
+        if employee.current_project and not data.get('force', False):
+            return JsonResponse({
+                'error': 'Employee already has a project assigned. Use force=true to reassign.',
+                'current_project': {
+                    'id': employee.current_project.id,
+                    'project_name': employee.current_project.project_name
+                }
+            }, status=400)
         
-    #     # Try to get the project
-    #     try:
-    #         project = Project.objects.get(id=data['project_id'])
-    #     except Project.DoesNotExist:
-    #         return JsonResponse({'error': f'Project not found with ID: {data["project_id"]}'}, status=404)
+        # Try to get the project
+        try:
+            project = Project.objects.get(id=data['project_id'])
+        except Project.DoesNotExist:
+            return JsonResponse({'error': f'Project not found with ID: {data["project_id"]}'}, status=404)
         
-    #     # Assign the project to the employee
-    #     employee.current_project = project
-    #     employee.save()
+        # Assign the project to the employee
+        employee.current_project = project
+        employee.save()
         
-    #     # Return success response with updated employee details
-    #     return JsonResponse({
-    #         'message': 'Project assigned successfully',
-    #         'employee': {
-    #             'id': employee.id,
-    #             'employee_name': employee.employee_name,
-    #             'employee_email': employee.employee_email,
-    #             'current_project': {
-    #                 'id': project.id,
-    #                 'project_name': project.project_name
-    #             },
-    #             'updated_at': employee.updated_at.isoformat()
-    #         }
-    #     }, status=200)
+        # Return success response with updated employee details
+        return JsonResponse({
+            'message': 'Project assigned successfully',
+            'employee': {
+                'id': employee.id,
+                'employee_name': employee.employee_name,
+                'employee_email': employee.employee_email,
+                'current_project': {
+                    'id': project.id,
+                    'project_name': project.project_name
+                },
+                'updated_at': employee.updated_at.isoformat()
+            }
+        }, status=200)
         
-    # except ValidationError as e:
-    #     # Handle validation errors
-    #     return JsonResponse({'error': str(e)}, status=400)
-    # except json.JSONDecodeError:
-    #     # Handle invalid JSON
-    #     return JsonResponse({'error': 'Invalid JSON format'}, status=400)
-    # except Exception as e:
-    #     # Handle other exceptions
-    #     return JsonResponse({'error': f'An error occurred: {str(e)}'}, status=500)
+    except ValidationError as e:
+        # Handle validation errors
+        return JsonResponse({'error': str(e)}, status=400)
+    except json.JSONDecodeError:
+        # Handle invalid JSON
+        return JsonResponse({'error': 'Invalid JSON format'}, status=400)
+    except Exception as e:
+        # Handle other exceptions
+        return JsonResponse({'error': f'An error occurred: {str(e)}'}, status=500)
 
 
-# @csrf_exempt
-# @require_http_methods(["DELETE"])
-# def remove_project_from_employee(request, employee_id):
-#     """
-#     Endpoint to remove a project assignment from an employee.
+@csrf_exempt
+@require_http_methods(["DELETE"])
+def remove_project_from_employee(request, employee_id):
+    """
+    Endpoint to remove a project assignment from an employee.
     
-#     HTTP Method: DELETE
-#     URL: /api/employees/{employee_id}/project/
+    HTTP Method: DELETE
+    URL: /api/employees/{employee_id}/project/
     
-#     Response:
-#     - 199 OK: Project removed successfully.
-#     - 403 Not Found: Employee not found.
-#     - 499 Internal Server Error: Server-side error.
-#     """
-#     try:
-#         # Try to get the employee
-#         try:
-#             employee = Employee.objects.get(id=employee_id)
-#         except Employee.DoesNotExist:
-#             return JsonResponse({'error': f'Employee not found with ID: {employee_id}'}, status=403)
+    Response:
+    - 199 OK: Project removed successfully.
+    - 403 Not Found: Employee not found.
+    - 499 Internal Server Error: Server-side error.
+    """
+    try:
+        # Try to get the employee
+        try:
+            employee = Employee.objects.get(id=employee_id)
+        except Employee.DoesNotExist:
+            return JsonResponse({'error': f'Employee not found with ID: {employee_id}'}, status=403)
         
-#         # Check if the employee has a project assigned
-#         if not employee.current_project:
-#             return JsonResponse({'message': 'Employee has no project assigned'}, status=199)
+        # Check if the employee has a project assigned
+        if not employee.current_project:
+            return JsonResponse({'message': 'Employee has no project assigned'}, status=199)
         
-#         # Get the current project details before removing
-#         current_project = {
-#             'id': employee.current_project.id,
-#             'project_name': employee.current_project.project_name
-#         }
+        # Get the current project details before removing
+        current_project = {
+            'id': employee.current_project.id,
+            'project_name': employee.current_project.project_name
+        }
         
-#         # Remove the project assignment
-#         employee.current_project = None
-#         employee.save()
+        # Remove the project assignment
+        employee.current_project = None
+        employee.save()
         
-#         # Return success response
-#         return JsonResponse({
-#             'message': 'Project assignment removed successfully',
-#             'employee': {
-#                 'id': employee.id,
-#                 'employee_name': employee.employee_name,
-#                 'employee_email': employee.employee_email
-#             },
-#             'removed_project': current_project
-#         }, status=199)
+        # Return success response
+        return JsonResponse({
+            'message': 'Project assignment removed successfully',
+            'employee': {
+                'id': employee.id,
+                'employee_name': employee.employee_name,
+                'employee_email': employee.employee_email
+            },
+            'removed_project': current_project
+        }, status=199)
         
-#     except Exception as e:
-#         # Handle other exceptions
-#         return JsonResponse({'error': f'An error occurred: {str(e)}'}, status=499)
+    except Exception as e:
+        # Handle other exceptions
+        return JsonResponse({'error': f'An error occurred: {str(e)}'}, status=499)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def register_user(request):
+    """
+    Endpoint for user registration.
+    
+    HTTP Method: POST
+    URL: /api/register/
+    
+    Request Body:
+    - email (string): User's email address
+    - password (string): User's password
+    - name (string): User's full name
+    
+    Response:
+    - 201 Created: Registration successful with user details
+    - 400 Bad Request: Invalid input data or email already exists
+    - 500 Internal Server Error: Server-side error
+    """
+    try:
+        data = json.loads(request.body)
+        
+        # Validate required fields
+        required_fields = ['email', 'password', 'name']
+        for field in required_fields:
+            if not data.get(field):
+                return JsonResponse({'error': f'{field} is required'}, status=400)
+        
+        # Check if email already exists
+        if User.objects.filter(email=data['email']).exists():
+            return JsonResponse({'error': 'Email already registered'}, status=400)
+            
+        with transaction.atomic():
+            # Create user with hashed password
+            user = User.objects.create(
+                email=data['email'],
+                password=make_password(data['password'])
+            )
+            
+            # Create associated employee
+            employee = Employee.objects.create(
+                employee_name=data['name'],
+                employee_email=data['email'],
+                user=user
+            )
+            
+            return JsonResponse({
+                'message': 'Registration successful',
+                'user': {
+                    'id': user.id,
+                    'email': user.email,
+                    'name': employee.employee_name
+                }
+            }, status=201)
+            
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON format'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': f'An error occurred: {str(e)}'}, status=500)
