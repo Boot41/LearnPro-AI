@@ -82,11 +82,11 @@ const quizzes = {
   }
 };
 
-const Quiz = () => {
+const Quiz = ({ quizData, onComplete, isSkillAssessment = false }) => {
   const { topicId } = useParams();
   const navigate = useNavigate();
   
-  const [currentQuizData, setCurrentQuizData] = useState(null);
+  const [currentQuizData, setCurrentQuizData] = useState(quizData || null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState(null);
   const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
@@ -95,13 +95,12 @@ const Quiz = () => {
   const [score, setScore] = useState(0);
   
   useEffect(() => {
-    if (topicId && quizzes[topicId ]) {
-      setCurrentQuizData(quizzes[topicId ]);
-    } else {
-      // Handle invalid topic ID
+    if (!quizData && topicId && quizzes[topicId]) {
+      setCurrentQuizData(quizzes[topicId]);
+    } else if (!quizData) {
       navigate('/dashboard');
     }
-  }, [topicId, navigate]);
+  }, [topicId, navigate, quizData]);
   
   if (!currentQuizData) {
     return (
@@ -128,14 +127,11 @@ const Quiz = () => {
       const isCorrect = selectedOption === currentQuestion.correctAnswer;
       
       // Update user answers
-      setUserAnswers(
-        ...userAnswers,
-        [currentQuestion.id]
-      );
+      setUserAnswers((prevUserAnswers) => ({ ...prevUserAnswers, [currentQuestion.id]: selectedOption }));
       
       // Update score if correct
       if (isCorrect) {
-        setScore(prevScore => prevScore + 1);
+        setScore((prevScore) => prevScore + 1);
       }
       
       setIsAnswerSubmitted(true);
@@ -144,7 +140,7 @@ const Quiz = () => {
   
   const handleNextQuestion = () => {
     if (currentQuestionIndex < currentQuizData.questions.length - 1) {
-      setCurrentQuestionIndex(prevIndex => prevIndex + 1);
+      setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
       setSelectedOption(null);
       setIsAnswerSubmitted(false);
     } else {
@@ -154,9 +150,11 @@ const Quiz = () => {
   };
   
   const handleFinishQuiz = () => {
-    // In a real app, this would send the quiz results to the server
-    // and generate a learning path based on the results
-    navigate('/learning-path');
+    if (isSkillAssessment && onComplete) {
+      onComplete(userAnswers);
+    } else {
+      navigate('/learning-path');
+    }
   };
   
   // Calculate progress percentage

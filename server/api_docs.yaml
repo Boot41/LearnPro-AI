@@ -1,0 +1,135 @@
+openapi: 3.0.0
+info:
+  title: LearnPro API
+  version: 1.0.0
+  description: API for LearnPro Learning Management System
+servers:
+  - url: http://localhost:8000/api
+    description: Local development server
+paths:
+  /users/{user_id}/learning_path:
+    get:
+      summary: Get user's learning path
+      description: Retrieve the learning path created for a specific user
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Learning path retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LearningPath'
+        '404':
+          description: User not found or no learning path exists
+        '500':
+          description: Server error
+
+  /projects:
+    post:
+      summary: Create a new project
+      description: Create a new project with knowledge assessment quizzes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectRequest'
+      responses:
+        '201':
+          description: Project created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectResponse'
+        '400':
+          description: Invalid input data
+        '500':
+          description: Server error
+
+components:
+  schemas:
+    LearningPath:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        total_estimated_hours:
+          type: number
+        calendar_locked:
+          type: boolean
+        topics:
+          type: array
+          items:
+            type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ProjectRequest:
+      type: object
+      required:
+        - project_name
+        - project_description
+        - subjects
+      properties:
+        project_name:
+          type: string
+        project_description:
+          type: string
+        subjects:
+          type: array
+          items:
+            $ref: '#/components/schemas/Subject'
+
+    ProjectResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        project:
+          $ref: '#/components/schemas/Project'
+        quiz:
+          $ref: '#/components/schemas/Quiz'
+
+    Subject:
+      type: object
+      properties:
+        subject_name:
+          type: string
+        topics:
+          type: array
+          items:
+            type: string
+
+    Project:
+      type: object
+      properties:
+        id:
+          type: integer
+        project_name:
+          type: string
+        project_description:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    Quiz:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string

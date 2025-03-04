@@ -9,6 +9,7 @@ import Quiz from './pages/Quiz';
 import QuizMCQ from './pages/QuizMCQ';
 import LearningPath from './pages/LearningPath';
 import Assessment from './pages/Assessment';
+import SkillAssessment from './pages/SkillAssessment';
 import NotFound from './pages/NotFound';
 import Layout from './components/Layout';
 
@@ -83,6 +84,22 @@ function App() {
               element={
                 <ProtectedRoute requiredRole="employee">
                   <Assessment />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/skill-assessment/:projectId" 
+              element={
+                <ProtectedRoute requiredRole="employee">
+                  <SkillAssessment />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/skill-assessment" 
+              element={
+                <ProtectedRoute requiredRole="employee">
+                  <SkillAssessment />
                 </ProtectedRoute>
               } 
             />

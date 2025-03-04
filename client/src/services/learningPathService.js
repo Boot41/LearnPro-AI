@@ -1,6 +1,9 @@
 import { sample_data } from '../../sample_data';
+import { get } from './apiService';
 
 // Helper function to transform the sample data into the required format for components
+let baseURL = import.meta.env.VITE_BASE_URL;
+
 const transformLearningPathData = (data) => {
   const learningPaths = [];
   
@@ -131,4 +134,20 @@ export const updateTopicProgress = (pathId, topicId, progress, status) => {
       });
     }, 300);
   });
+};
+
+/**
+ * Get the learning path for a specific user from the server API
+ * @param {string} userId - The ID of the user
+ * @returns {Promise} Promise resolving to the user's learning path or an error
+ */
+export const getUserLearningPath = async (userId) => {
+  try {
+    // Make a real API call to the server endpoint
+    const response = await get(`/users/${userId}/learning_path/`);
+    return response;
+  } catch (error) {
+    console.error('Error fetching user learning path:', error);
+    throw error;
+  }
 };

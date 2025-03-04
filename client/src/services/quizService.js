@@ -1,10 +1,14 @@
 import { sample_data } from '../../sample_data';
+import { get } from './apiService';
 
 /**
  * Get quiz data for a specific topic
  * @param {string} topicId - The ID of the topic
  * @returns {Promise} Promise resolving to quiz data for the topic
  */
+
+let baseURL = import.meta.env.VITE_BASE_URL;
+
 export const getQuizByTopicId = (topicId) => {
   return new Promise((resolve, reject) => {
     // Simulate API call delay
@@ -126,4 +130,52 @@ export const submitQuizAnswers = (topicId, userAnswers) => {
       });
     }, 500);
   });
+};
+
+/**
+ * Get skill assessment quiz for a specific project
+ * @param {string} projectId - The ID of the project
+ * @returns {Promise} Promise resolving to skill assessment quiz data
+ */
+export const getSkillAssessmentQuiz = async (projectId) => {
+  try {
+    // Make a real API call to the server endpoint
+    const response = await get(`${baseURL}/projects/${projectId}/skill-assessment/`);
+    return response;
+  } catch (error) {
+    console.error('Error fetching skill assessment quiz:', error);
+    throw error;
+  }
+};
+
+/**
+ * Submit skill assessment answers
+ * @param {string} projectId - The ID of the project
+ * @param {string} userId - The ID of the user
+ * @param {Object} answers - User's answers to the skill assessment questions
+ * @returns {Promise} Promise resolving to the assessment results
+ */
+export const submitSkillAssessment = async (projectId, userId, answers) => {
+  try {
+    // Make a real API call to the server endpoint
+    const response = await fetch(`${baseURL}/projects/${projectId}/skill-assessment/submit/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId,
+        answers
+      })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`API request failed with status ${response.status}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error submitting skill assessment:', error);
+    throw error;
+  }
 };

@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { getUserLearningPath, loginUser, getSkillAssessmentQuiz } from '../services';
+import { registerUser } from '../services/authService';
 
 // Define user type
 export interface User {
@@ -6,6 +8,10 @@ export interface User {
   name: string;
   email: string;
   role: 'admin' | 'employee';
+  project?: {
+    id: string;
+    name: string;
+  };
 }
 
 // Define context type
@@ -13,110 +19,194 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  hasLearningPath: boolean;
+  quiz: any | null;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string, role: 'admin' | 'employee') => Promise<void>;
   logout: () => void;
+  checkLearningPathAndQuiz: () => Promise<void>;
 }
 
 // Create context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Mock user data (in a real app, this would come from an API)
-const mockUsers = [
-  {
-    id: '1',
-    name: 'Admin User',
-    email: 'admin@learnpro.ai',
-    password: 'admin123',
-    role: 'admin' as const
-  },
-  {
-    id: '2',
-    name: 'Employee User',
-    email: 'employee@learnpro.ai',
-    password: 'employee123',
-    role: 'employee' as const
-  }
-];
-
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasLearningPath, setHasLearningPath] = useState(false);
+  const [quiz, setQuiz] = useState(null);
 
   // Check for existing session on mount
   useEffect(() => {
+    console.log("AuthProvider - Initial Mount");
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      const parsedUser = JSON.parse(storedUser);
+      setUser(parsedUser);
+      
+      // Also restore learning path status from localStorage
+      const storedHasLearningPath = localStorage.getItem('hasLearningPath');
+      setHasLearningPath(storedHasLearningPath === 'true');
+      
+      checkLearningPathAndQuiz();
     }
     setIsLoading(false);
   }, []);
+
+  // Function to check learning path and get quiz if needed
+  const checkLearningPathAndQuiz = async () => {
+    console.log("AuthProvider - Checking learning path and quiz");
+    if (!user || user.role !== 'employee') return;
+
+    try {
+      console.log("Fetching learning path for user:", user.id);
+      const learningPathResponse = await getUserLearningPath(user.id);
+      const hasPath = !!learningPathResponse?.learning_path;
+      console.log("Learning path response:", { hasPath, response: learningPathResponse });
+      
+      setHasLearningPath(hasPath);
+      localStorage.setItem('hasLearningPath', JSON.stringify(hasPath));
+
+      if (!hasPath && user.project?.id) {
+        console.log("No learning path found, fetching quiz for project:", user.project.id);
+        try {
+          const quizData = await getSkillAssessmentQuiz(user.project.id);
+          console.log("Quiz data received:", quizData);
+          setQuiz(quizData);
+        } catch (quizError) {
+          console.error('Error fetching skill assessment quiz:', quizError);
+          setQuiz(null);
+        }
+      } else {
+        setQuiz(null);
+      }
+    } catch (error: any) {
+      console.log("Error response from learning path check:", error);
+      // Check if this is a 404 "No learning path found" error
+      if (error.message?.includes('404') || error.message?.includes('No learning path found')) {
+        console.log("404 or No learning path found error detected");
+        setHasLearningPath(false);
+        localStorage.setItem('hasLearningPath', 'false');
+        
+        // Try to get quiz if learning path check fails
+        if (user.project?.id) {
+          try {
+            console.log("Fetching quiz after 404 error");
+            const quizData = await getSkillAssessmentQuiz(user.project.id);
+            console.log("Quiz data received after 404:", quizData);
+            setQuiz(quizData);
+          } catch (quizError) {
+            console.error('Error fetching skill assessment quiz:', quizError);
+            setQuiz(null);
+          }
+        }
+      } else {
+        console.error('Error checking learning path:', error);
+        setHasLearningPath(false);
+        localStorage.setItem('hasLearningPath', 'false');
+      }
+    }
+  };
 
   // Login function
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const foundUser = mockUsers.find(
-      u => u.email === email && u.password === password
-    );
-    
-    if (!foundUser) {
+    try {
+      console.log("Attempting login for:", email);
+      // Use the authService to login
+      const response = await loginUser(email, password);
+      
+      if (!response || response.error) {
+        setIsLoading(false);
+        throw new Error(response?.error || 'Invalid credentials');
+      }
+      
+      // Transform the response to match our User interface
+      const userData = {
+        id: response.user.id.toString(),
+        name: response.user.first_name && response.user.last_name 
+          ? `${response.user.first_name} ${response.user.last_name}`.trim() 
+          : email.split('@')[0], // Use part before @ as name if no first/last name
+        email: response.user.email,
+        role: response.user.is_staff ? 'admin' : 'employee',
+        project: response.user.project ? {
+          id: response.user.project.id.toString(),
+          name: response.user.project.name
+        } : undefined
+      };
+      
+      console.log("Login successful, user data:", userData);
+      setUser(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
+      
+      // Check learning path and quiz for employee users
+      if (userData.role === 'employee') {
+        await checkLearningPathAndQuiz();
+      }
+      
       setIsLoading(false);
-      throw new Error('Invalid credentials');
+    } catch (error) {
+      console.error("Login error:", error);
+      setIsLoading(false);
+      throw error;
     }
-    
-    const { password: _, ...userWithoutPassword } = foundUser;
-    setUser(userWithoutPassword);
-    localStorage.setItem('user', JSON.stringify(userWithoutPassword));
-    setIsLoading(false);
   };
 
   // Register function
   const register = async (name: string, email: string, password: string, role: 'admin' | 'employee') => {
     setIsLoading(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Check if user already exists
-    if (mockUsers.some(u => u.email === email)) {
+    try {
+      console.log("Attempting registration for:", email);
+      const response = await registerUser(email, password, name);
+      
+      if (!response || response.error) {
+        setIsLoading(false);
+        throw new Error(response?.error || 'Registration failed');
+      }
+      
+      // After successful registration, log the user in
+      await login(email, password);
+      
       setIsLoading(false);
-      throw new Error('User already exists');
+    } catch (error) {
+      console.error("Registration error:", error);
+      setIsLoading(false);
+      throw error;
     }
-    
-    // In a real app, this would create a new user in the database
-    const newUser = {
-      id: String(mockUsers.length + 1),
-      name,
-      email,
-      role
-    };
-    
-    setUser(newUser);
-    localStorage.setItem('user', JSON.stringify(newUser));
-    setIsLoading(false);
   };
 
   // Logout function
   const logout = () => {
     setUser(null);
+    setHasLearningPath(false);
+    setQuiz(null);
     localStorage.removeItem('user');
+    localStorage.removeItem('hasLearningPath');
   };
 
+  const contextValue = {
+    user,
+    isAuthenticated: !!user,
+    isLoading,
+    hasLearningPath,
+    quiz,
+    login,
+    register,
+    logout,
+    checkLearningPathAndQuiz
+  };
+
+  console.log("AuthProvider - Current State:", {
+    isAuthenticated: !!user,
+    hasLearningPath,
+    hasQuiz: !!quiz,
+    isLoading
+  });
+
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isAuthenticated: !!user,
-        isLoading,
-        login,
-        register,
-        logout
-      }}
-    >
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

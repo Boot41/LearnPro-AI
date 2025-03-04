@@ -4,7 +4,7 @@
  */
 
 // Base URL for API requests - will be used when connecting to real API
-const API_BASE_URL = '/api';
+let baseURL = import.meta.env.VITE_BASE_URL;
 
 /**
  * Make a GET request to the API
@@ -13,7 +13,7 @@ const API_BASE_URL = '/api';
  * @returns {Promise} Promise resolving to the response data
  */
 export const get = async (endpoint, params = {}) => {
-  const url = new URL(`${API_BASE_URL}${endpoint}`, window.location.origin);
+  const url = new URL(`${baseURL}${endpoint}`, window.location.origin);
   
   // Add query parameters
   Object.keys(params).forEach(key => {
@@ -49,7 +49,7 @@ export const get = async (endpoint, params = {}) => {
  */
 export const post = async (endpoint, data = {}) => {
   try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const response = await fetch(`${baseURL}${endpoint}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -78,7 +78,7 @@ export const post = async (endpoint, data = {}) => {
  */
 export const put = async (endpoint, data = {}) => {
   try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const response = await fetch(`${baseURL}${endpoint}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -106,7 +106,7 @@ export const put = async (endpoint, data = {}) => {
  */
 export const del = async (endpoint) => {
   try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const response = await fetch(`${baseURL}${endpoint}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
