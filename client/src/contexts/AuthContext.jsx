@@ -136,7 +136,7 @@ export const AuthProvider = ({ children }) => {
         setIsLoading(false);
         throw new Error(response?.error || 'Registration failed');
       }
-      
+       
       // After successful registration, log the user in
       await login(email, password);
       

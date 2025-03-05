@@ -24,10 +24,49 @@ const parseQuizData = (rawQuizData) => {
         id: q.id || String(index + 1),
         question: q.question,
         options,
-        correctAnswer: correctAnswerId
+        correctAnswer: correctAnswerId,
+        topic: q.topic || 'General',
+        points: q.points || 10
       };
     })
   };
+};
+
+// Calculate topic-wise scores from quiz results
+const calculateTopicScores = (questions, userAnswers) => {
+  const topicScores = {};
+  const topicTotals = {};
+  
+  questions.forEach(question => {
+    const topic = question.topic;
+    const points = question.points;
+    
+    // Initialize topic scores if not exists
+    if (!topicScores[topic]) {
+      topicScores[topic] = 0;
+      topicTotals[topic] = 0;
+    }
+    
+    // Add points to total possible points for this topic
+    topicTotals[topic] += points;
+    
+    // Add points to score if answer is correct
+    if (userAnswers[question.id] === question.correctAnswer) {
+      topicScores[topic] += points;
+    }
+  });
+  
+  // Calculate percentages for each topic
+  const topicPercentages = {};
+  Object.keys(topicScores).forEach(topic => {
+    topicPercentages[topic] = {
+      score: topicScores[topic],
+      total: topicTotals[topic],
+      percentage: Math.round((topicScores[topic] / topicTotals[topic]) * 100)
+    };
+  });
+  
+  return topicPercentages;
 };
 
 const Quiz = ({ quizData, onComplete, isSkillAssessment = false }) => {
@@ -101,7 +140,9 @@ const Quiz = ({ quizData, onComplete, isSkillAssessment = false }) => {
   
   const handleFinishQuiz = () => {
     if (isSkillAssessment && onComplete) {
-      onComplete(userAnswers);
+      // Calculate topic-wise scores before submitting
+      const topicScores = calculateTopicScores(currentQuizData.questions, userAnswers);
+      onComplete({ answers: userAnswers, topicScores });
     } else {
       navigate('/learning-path');
     }

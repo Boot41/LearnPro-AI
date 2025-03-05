@@ -157,22 +157,30 @@ export const getSkillAssessmentQuiz = async (projectId) => {
  */
 export const submitSkillAssessment = async (projectId, userId, answers) => {
   try {
+    // Get the auth token from localStorage
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
     // Make a real API call to the server endpoint
-    const response = await fetch(`${baseURL}/projects/${projectId}/skill-assessment/submit/`, {
+    const response = await fetch(`${baseURL}/api/learning_paths/from_assessment`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({
-        userId,
-        answers
+        answers: answers.answers,
+        topicScores: answers.topicScores
       })
     });
-    
+
     if (!response.ok) {
-      throw new Error(`API request failed with status ${response.status}`);
+      const errorData = await response.json();
+      throw new Error(errorData.detail || 'Failed to submit skill assessment');
     }
-    
+
     return await response.json();
   } catch (error) {
     console.error('Error submitting skill assessment:', error);

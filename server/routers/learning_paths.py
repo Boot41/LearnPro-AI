@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
+import json
+from datetime import datetime
 
 import models
 import schemas
@@ -45,23 +47,47 @@ def get_learning_path():
     }
     return generate_learning_path(topics, scores)
 
-@router.post("/api/learning_paths", response_model=schemas.LearningPath)
-def create_learning_path(
-    learning_path: schemas.LearningPathCreate,
+@router.post("/api/learning_paths/from_assessment", response_model=schemas.LearningPath)
+def create_learning_path_from_assessment(
+    quiz_submission: schemas.QuizSubmission,
     current_user: models.User = Depends(auth.get_current_active_user),
     db: Session = Depends(get_db)
 ):
-    # Only admins can create learning paths
-    if current_user.user_type != models.UserType.ADMIN:
+    """Create a learning path based on skill assessment quiz results"""
+    print(current_user)
+    if current_user.user_type != models.UserType.EMPLOYEE:
         raise HTTPException(
             status_code=403,
-            detail="Only admin users can create learning paths"
+            detail="Only employees can create learning paths from assessments"
         )
     
-    db_learning_path = models.LearningPath(**learning_path.dict())
+    if not current_user.assigned_project_id:
+        raise HTTPException(
+            status_code=400,
+            detail="No project assigned to user"
+        )
+    
+    # Get topics and scores from quiz submission
+    topics = list(quiz_submission.topicScores.keys())
+    scores = {topic: score.percentage / 100 for topic, score in quiz_submission.topicScores.items()}
+    
+    # Generate learning path using LLM
+    learning_path_data = generate_learning_path(topics, scores)
+    
+    # Create learning path record
+    db_learning_path = models.LearningPath(
+        user_id=current_user.id,
+        project_id=current_user.assigned_project_id,
+        learning_path=json.dumps(learning_path_data),
+        total_topics=sum(len(subject.get('topics', [])) for subject in learning_path_data.get('subjects', [])),
+        completed_topics=0,
+        created_at=datetime.utcnow()  # Use datetime object instead of timestamp
+    )
+    
     db.add(db_learning_path)
     db.commit()
     db.refresh(db_learning_path)
+    
     return db_learning_path
 
 @router.get("/api/learning_paths/user/{user_id}", response_model=List[schemas.LearningPath])

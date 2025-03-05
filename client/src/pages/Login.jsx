@@ -3,46 +3,44 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLearningPath } from '../contexts/LearningPathContext';
 import { BookOpen, AlertCircle } from 'lucide-react';
-
+import { getSkillAssessmentQuiz } from '../services/skillAssessmentService';
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
-  const { fetchLearningPath, skillAssessment } = useLearningPath();
+  const { fetchLearningPath, setSkillAssessment } = useLearningPath();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
-    
-    try {
-      const userData = await login(email, password);
-      console.log(userData);
-      
-      // If user is an employee, fetch their learning path
-      if (userData.role === 'employee') {
+    const userData = await login(email, password);
+    if (userData.role === 'employee') {
+      try{
         await fetchLearningPath();
-        // If we got a skill assessment quiz, redirect to skill assessment page
-        if (skillAssessment) {
-          console.log(skillAssessment)
-          navigate('/skill-assessment');
-        } else {
-          navigate('/dashboard');
+        navigate('/dashboard');
+      } 
+      catch (err){
+        if (err.message?.includes('API request failed with status 404')) {
+          try{
+            const quizData = await getSkillAssessmentQuiz();
+            setSkillAssessment(quizData);
+            navigate('/skill-assessment');
+          } 
+          catch(quizError){
+            console.error('Error fetching skill assessment:', quizError);
+            setError('Failed to fetch both learning path and skill assessment');
+          }
         }
-      } else {
-        // For admin users, go to admin dashboard
-        navigate('/admin');
-      }
-    } catch (err) {
-      console.log(err);
-      setError('Invalid email or password');
-    } finally {
-      setIsLoading(false);
+      } 
     }
-  };
+    else {
+      navigate('/admin');
+      }
+    }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center p-4">

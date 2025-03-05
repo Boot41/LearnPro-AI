@@ -18,6 +18,7 @@ const SkillAssessment = () => {
   
   const handleQuizCompletion = async (results) => {
     try {
+      console.log(results)
       await submitSkillAssessment(skillAssessment.project_id, user.id, results);
       navigate('/dashboard');
     } catch (err) {

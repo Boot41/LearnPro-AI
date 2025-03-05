@@ -112,6 +112,17 @@ class LearningPath(LearningPathBase):
     class Config:
         from_attributes = True
 
+class TopicScore(BaseModel):
+    """Schema for individual topic score"""
+    score: int
+    total: int
+    percentage: float
+
+class QuizSubmission(BaseModel):
+    """Schema for quiz submission with answers and topic scores"""
+    answers: Dict[str, str]
+    topicScores: Dict[str, TopicScore]
+
 class AssignProject(BaseModel):
     """Schema for assigning a project to a user"""
     email: EmailStr

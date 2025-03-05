@@ -1,6 +1,5 @@
-import React, { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState } from 'react';
 import { getMyLearningPath } from '../services/learningPathService';
-import { getSkillAssessmentQuiz } from '../services/skillAssessmentService';
 
 const LearningPathContext = createContext();
 
@@ -14,10 +13,9 @@ export const useLearningPath = () => {
 
 export const LearningPathProvider = ({ children }) => {
   const [learningPath, setLearningPath] = useState(null);
-  const [skillAssessment, setSkillAssessment] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-
+  const [skillAssessment, setSkillAssessment] = useState(null);
   const fetchLearningPath = async () => {
     setIsLoading(true);
     setError(null);
@@ -27,28 +25,12 @@ export const LearningPathProvider = ({ children }) => {
       setSkillAssessment(null); // Clear any existing skill assessment
     } catch (err) {
       console.log(err.message)
-      // If no learning path found, try to get skill assessment
-      if (err.message?.includes('API request failed with status 404')) {
-        try {
-          const quizData = await getSkillAssessmentQuiz();
-          setSkillAssessment(quizData);
-          
-          setLearningPath(null);
-        } catch (quizError) {
-          console.error('Error fetching skill assessment:', quizError);
-          setError('Failed to fetch both learning path and skill assessment');
-        }
-      } else {
-        setError(err.message);
-      }
-    } finally {
-      setIsLoading(false);
+      throw err
     }
   };
 
   const clearLearningPath = () => {
     setLearningPath(null);
-    setSkillAssessment(null);
     setError(null);
   };
 
@@ -60,7 +42,8 @@ export const LearningPathProvider = ({ children }) => {
         isLoading, 
         error, 
         fetchLearningPath,
-        clearLearningPath
+        clearLearningPath,
+        setSkillAssessment
       }}
     >
       {children}

@@ -21,7 +21,8 @@ def generate_assignment_questions(subjects):
     )
 
     prompt = f"""Generate a multiple choice quiz for the following subjects: \n\n{subject_text}. 
-    Create questions that cover the topics with 4 options each and one correct answer.
+    Create questions that cover the topics with 4 options each and one correct answer make sure there are enough questions for each topic.
+    The quiz should have more than 15 questions and each topic should be represented with different levels of questions (e.g., easy, medium, hard) from a proffessional point of view.
     Return the response in the following JSON format:
     {{
         "title": "Quiz title",
@@ -31,7 +32,8 @@ def generate_assignment_questions(subjects):
                 "question": "Question text",
                 "options": ["option1", "option2", "option3", "option4"],
                 "correctAnswer": "correct option",
-                "points": 10
+                "points": 10,
+                "topic":"topic"
             }}
         ]
     }}
