@@ -153,6 +153,20 @@ export const getUserLearningPath = async (userId) => {
 };
 
 /**
+ * Get learning path for the currently logged-in user
+ * @returns {Promise} Promise resolving to the user's learning path
+ */
+export const getMyLearningPath = async () => {
+  try {
+    const response = await get('/api/learning_paths/me');
+    return response;
+  } catch (error) {
+    console.error('Error fetching learning path:', error);
+    throw error;
+  }
+};
+
+/**
  * Get learning path for a user
  * @param {number} userId - The ID of the user
  * @returns {Promise} Promise resolving to the learning path data

@@ -3,36 +3,11 @@ import { getUserLearningPath, loginUser, getSkillAssessmentQuiz } from '../servi
 import { registerUser } from '../services/authService';
 import { setAuthToken } from '../utils/auth';
 
-// Define user type
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: 'admin' | 'employee';
-  project?: {
-    id: string;
-    name: string;
-  };
-}
-
-// Define context type
-interface AuthContextType {
-  user: User | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  hasLearningPath: boolean;
-  quiz: any | null;
-  login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string, role: 'admin' | 'employee') => Promise<void>;
-  logout: () => void;
-  checkLearningPathAndQuiz: () => Promise<void>;
-}
-
 // Create context
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasLearningPath, setHasLearningPath] = useState(false);
   const [quiz, setQuiz] = useState(null);
@@ -81,7 +56,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else {
         setQuiz(null);
       }
-    } catch (error: any) {
+    } catch (error) {
       console.log("Error response from learning path check:", error);
       // Check if this is a 404 "No learning path found" error
       if (error.message?.includes('404') || error.message?.includes('No learning path found')) {
@@ -110,7 +85,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   // Login function
-  const login = async (email: string, password: string) => {
+  const login = async (email, password) => {
     setIsLoading(true);
     
     try {
@@ -135,14 +110,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setAuthToken(response.access_token); 
       console.log("Login successful, user data:", userData);
       setUser(userData);
-      localStorage.setItem('user', JSON.stringify(userData));
-      
+      localStorage.setItem('user', JSON.stringify(userData)); 
       // Check learning path and quiz for employee users
-      if (userData.role === 'employee') {
-        await checkLearningPathAndQuiz();
-      }
-      
+      // if (userData.role === 'employee') {
+      //   await checkLearningPathAndQuiz();
+      // }      
       setIsLoading(false);
+      return userData
     } catch (error) {
       console.error("Login error:", error);
       setIsLoading(false);
@@ -151,7 +125,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   // Register function
-  const register = async (name: string, email: string, password: string, role: 'admin' | 'employee') => {
+  const register = async (name, email, password, role) => {
     setIsLoading(true);
     
     try {

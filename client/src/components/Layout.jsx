@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Outlet, useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext.tsx';
+import { useAuth } from '../contexts/AuthContext';
 import { LogOut, Menu, X, BookOpen, Calendar, User, BarChart } from 'lucide-react';
 
 const Layout = () => {

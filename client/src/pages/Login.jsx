@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useLearningPath } from '../contexts/LearningPathContext';
 import { BookOpen, AlertCircle } from 'lucide-react';
 
-const Login= () => {
+const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
+  const { fetchLearningPath } = useLearningPath();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -17,10 +19,17 @@ const Login= () => {
     setIsLoading(true);
     
     try {
-      await login(email, password);
-      // Redirect based on role (handled in the auth context)
+      const userData = await login(email, password);
+       
+      // If user is an employee, fetch their learning path
+      if (userData.user_type === 'EMPLOYEE') {
+        await fetchLearningPath();
+      }
+      
+      // Redirect based on role
       navigate('/dashboard');
     } catch (err) {
+      console.log(err)
       setError('Invalid email or password');
     } finally {
       setIsLoading(false);
@@ -104,12 +113,12 @@ const Login= () => {
             <div className="bg-gray-50 p-2 rounded">
               <p className="font-semibold">Admin:</p>
               <p>admin@learnpro.ai</p>
-              <p>admin123</p>
+              <p>admin</p>
             </div>
             <div className="bg-gray-50 p-2 rounded">
               <p className="font-semibold">Employee:</p>
               <p>employee@learnpro.ai</p>
-              <p>employee123</p>
+              <p>emp</p>
             </div>
           </div>
         </div>

@@ -10,6 +10,31 @@ from utils.llm_utils import generate_learning_path
 
 router = APIRouter(tags=["learning paths"])
 
+@router.get("/api/learning_paths/me", response_model=schemas.LearningPath)
+def get_my_learning_path(
+    current_user: models.User = Depends(auth.get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Get the learning path for the currently logged-in user"""
+    if current_user.user_type != models.UserType.EMPLOYEE:
+        raise HTTPException(
+            status_code=403,
+            detail="Only employees can access their learning paths"
+        )
+    
+    # Get the most recent learning path for the user
+    learning_path = db.query(models.LearningPath).filter(
+        models.LearningPath.user_id == current_user.id
+    ).order_by(models.LearningPath.created_at.desc()).first()
+    
+    if not learning_path:
+        raise HTTPException(
+            status_code=404,
+            detail="No learning path found. Please contact your administrator."
+        )
+    
+    return learning_path
+
 @router.get("/learning_path")
 def get_learning_path():
     topics = ["React Basics", "State Management", "API Integration"]
@@ -26,6 +51,13 @@ def create_learning_path(
     current_user: models.User = Depends(auth.get_current_active_user),
     db: Session = Depends(get_db)
 ):
+    # Only admins can create learning paths
+    if current_user.user_type != models.UserType.ADMIN:
+        raise HTTPException(
+            status_code=403,
+            detail="Only admin users can create learning paths"
+        )
+    
     db_learning_path = models.LearningPath(**learning_path.dict())
     db.add(db_learning_path)
     db.commit()
