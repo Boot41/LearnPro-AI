@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from typing import List
 
 import models
 import schemas
@@ -44,3 +45,40 @@ def list_employees(
         employee_list.append(employee_data)
     
     return employee_list
+
+@router.post("/assign-project")
+def assign_project_to_user(
+    assign_project: schemas.AssignProject,
+    current_user: models.User = Depends(auth.get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Assign a project to a user using their email"""
+    # Check if current user is admin
+    if current_user.user_type != models.UserType.ADMIN:
+        raise HTTPException(
+            status_code=403,
+            detail="Only admin users can assign projects"
+        )
+    
+    # Find the user by email
+    user = db.query(models.User).filter(models.User.email == assign_project.email).first()
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail=f"User with email {assign_project.email} not found"
+        )
+    
+    # Check if project exists
+    project = db.query(models.Project).filter(models.Project.id == assign_project.project_id).first()
+    if not project:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Project with id {assign_project.project_id} not found"
+        )
+    
+    # Assign project to user
+    user.assigned_project_id = assign_project.project_id
+    db.commit()
+    db.refresh(user)
+    
+    return {"message": f"Successfully assigned project {project.name} to user {user.email}"}

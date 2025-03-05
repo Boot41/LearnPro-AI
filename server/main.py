@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 import models
 from database import engine, SessionLocal
-from routers import auth, users, projects, learning_paths
+from routers import auth, users, projects, learning_paths, skill_assessments
 
 # Create database tables
 models.Base.metadata.create_all(bind=engine)
@@ -63,6 +63,7 @@ app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(projects.router)
 app.include_router(learning_paths.router)
+app.include_router(skill_assessments.router)
 
 @app.get("/")
 def read_root():

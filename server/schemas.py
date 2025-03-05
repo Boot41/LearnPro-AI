@@ -111,3 +111,16 @@ class LearningPath(LearningPathBase):
 
     class Config:
         from_attributes = True
+
+class AssignProject(BaseModel):
+    """Schema for assigning a project to a user"""
+    email: EmailStr
+    project_id: int
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "email": "employee@example.com",
+                "project_id": 1
+            }
+        }

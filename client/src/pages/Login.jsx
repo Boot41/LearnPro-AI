@@ -10,7 +10,7 @@ const Login = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
-  const { fetchLearningPath } = useLearningPath();
+  const { fetchLearningPath, skillAssessment } = useLearningPath();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -20,16 +20,23 @@ const Login = () => {
     
     try {
       const userData = await login(email, password);
-       
-      // If user is an employee, fetch their learning path
-      if (userData.user_type === 'EMPLOYEE') {
-        await fetchLearningPath();
-      }
+      console.log(userData);
       
-      // Redirect based on role
-      navigate('/dashboard');
+      // If user is an employee, fetch their learning path
+      if (userData.role === 'employee') {
+        await fetchLearningPath();
+        // If we got a skill assessment quiz, redirect to skill assessment page
+        if (skillAssessment) {
+          navigate('/skill-assessment');
+        } else {
+          navigate('/dashboard');
+        }
+      } else {
+        // For admin users, go to admin dashboard
+        navigate('/admin');
+      }
     } catch (err) {
-      console.log(err)
+      console.log(err);
       setError('Invalid email or password');
     } finally {
       setIsLoading(false);

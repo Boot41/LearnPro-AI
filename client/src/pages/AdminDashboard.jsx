@@ -5,7 +5,7 @@ import EmployeeList from '../components/EmployeeList';
 import ProjectList from '../components/ProjectList';
 import AddProjectModal from '../components/AddProjectModal';
 import AddEmployeeModal from '../components/AddEmployeeModal';
-import { getEmployees } from '../services/employeeService';
+import { getEmployees, addEmployee, assignProjectToEmployee } from '../services/employeeService';
 import { getProjects } from '../services/projectService';
 
 const chartData = [
@@ -68,15 +68,14 @@ const AdminDashboard = () => {
 
   const handleAddEmployee = async (employeeData) => {
     try {
-      // TODO: Implement employee creation API
-      console.log('New Employee:', employeeData);
+      await assignProjectToEmployee(employeeData.email, employeeData.project_id);
       setShowAddEmployeeModal(false);
       
       // Refresh employee list
       const data = await getEmployees();
       setEmployees(data);
     } catch (err) {
-      console.error('Failed to add employee:', err);
+      throw new Error(err.message || 'Failed to add employee');
     }
   };
 

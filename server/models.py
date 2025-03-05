@@ -20,6 +20,10 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    assigned_project_id = Column(Integer, ForeignKey("projects.id"), nullable=True)
+    
+    # Relationships
+    assigned_project = relationship("Project", foreign_keys=[assigned_project_id], backref="assigned_users")
 
 # Association table for Subject-Topic relationship
 subject_topics = Table('subject_topics', Base.metadata,
