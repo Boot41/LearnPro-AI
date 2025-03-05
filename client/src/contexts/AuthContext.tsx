@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { getUserLearningPath, loginUser, getSkillAssessmentQuiz } from '../services';
 import { registerUser } from '../services/authService';
+import { setAuthToken } from '../utils/auth';
 
 // Define user type
 export interface User {
@@ -124,18 +125,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // Transform the response to match our User interface
       const userData = {
-        id: response.user.id.toString(),
-        name: response.user.first_name && response.user.last_name 
-          ? `${response.user.first_name} ${response.user.last_name}`.trim() 
+        id: response.id.toString(),
+        name: response.user?.first_name && response.user?.last_name
+          ? `${response.user.first_name} ${response.user.last_name}`.trim()
           : email.split('@')[0], // Use part before @ as name if no first/last name
-        email: response.user.email,
-        role: response.user.is_staff ? 'admin' : 'employee',
-        project: response.user.project ? {
-          id: response.user.project.id.toString(),
-          name: response.user.project.name
-        } : undefined
+        email: response.user?.email,
+        role: response.user_type === 'admin' ? 'admin' : 'employee',
       };
-      
+      setAuthToken(response.access_token); 
       console.log("Login successful, user data:", userData);
       setUser(userData);
       localStorage.setItem('user', JSON.stringify(userData));

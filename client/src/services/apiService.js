@@ -1,10 +1,51 @@
 /**
  * Base API service for making HTTP requests
- * This will be used in the future when connecting to real API endpoints
  */
 
-// Base URL for API requests - will be used when connecting to real API
-let baseURL = import.meta.env.VITE_BASE_URL;
+import { getAuthToken } from '../utils/auth';
+
+// Base URL for API requests
+const baseURL = import.meta.env.VITE_BASE_URL || '';
+
+/**
+ * Get headers for API requests
+ * @returns {Object} Headers object with auth token if available
+ */
+const getHeaders = () => {
+  const headers = {
+    'Content-Type': 'application/json',
+  };
+
+  const token = getAuthToken();
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  return headers;
+};
+
+/**
+ * Handle API response
+ * @param {Response} response - Fetch response object
+ * @returns {Promise} Promise resolving to response data
+ */
+const handleResponse = async (response) => {
+  if (!response.ok) {
+    if (response.status === 401) {
+      // Handle unauthorized error
+      // You might want to redirect to login or refresh token
+      console.error('Unauthorized access');
+    }
+    throw new Error(`API request failed with status ${response.status}`);
+  }
+
+  // Some endpoints (like DELETE) might not return content
+  if (response.status === 204) {
+    return null;
+  }
+
+  return await response.json();
+};
 
 /**
  * Make a GET request to the API
@@ -23,18 +64,11 @@ export const get = async (endpoint, params = {}) => {
   try {
     const response = await fetch(url.toString(), {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        // Add authorization headers when implementing auth
-        // 'Authorization': `Bearer ${getAuthToken()}`
-      }
+      headers: getHeaders(),
+      credentials: 'include'
     });
     
-    if (!response.ok) {
-      throw new Error(`API request failed with status ${response.status}`);
-    }
-    
-    return await response.json();
+    return await handleResponse(response);
   } catch (error) {
     console.error('API request error:', error);
     throw error;
@@ -51,19 +85,12 @@ export const post = async (endpoint, data = {}) => {
   try {
     const response = await fetch(`${baseURL}${endpoint}`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        // Add authorization headers when implementing auth
-        // 'Authorization': `Bearer ${getAuthToken()}`
-      },
+      headers: getHeaders(),
+      credentials: 'include',
       body: JSON.stringify(data)
     });
     
-    if (!response.ok) {
-      throw new Error(`API request failed with status ${response.status}`);
-    }
-    
-    return await response.json();
+    return await handleResponse(response);
   } catch (error) {
     console.error('API request error:', error);
     throw error;
@@ -80,19 +107,12 @@ export const put = async (endpoint, data = {}) => {
   try {
     const response = await fetch(`${baseURL}${endpoint}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        // Add authorization headers when implementing auth
-        // 'Authorization': `Bearer ${getAuthToken()}`
-      },
+      headers: getHeaders(),
+      credentials: 'include',
       body: JSON.stringify(data)
     });
     
-    if (!response.ok) {
-      throw new Error(`API request failed with status ${response.status}`);
-    }
-    
-    return await response.json();
+    return await handleResponse(response);
   } catch (error) {
     console.error('API request error:', error);
     throw error;
@@ -108,23 +128,11 @@ export const del = async (endpoint) => {
   try {
     const response = await fetch(`${baseURL}${endpoint}`, {
       method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        // Add authorization headers when implementing auth
-        // 'Authorization': `Bearer ${getAuthToken()}`
-      }
+      headers: getHeaders(),
+      credentials: 'include'
     });
     
-    if (!response.ok) {
-      throw new Error(`API request failed with status ${response.status}`);
-    }
-    
-    // Some DELETE operations may not return content
-    if (response.status === 204) {
-      return null;
-    }
-    
-    return await response.json();
+    return await handleResponse(response);
   } catch (error) {
     console.error('API request error:', error);
     throw error;

@@ -12,7 +12,7 @@ import { post, get } from './apiService';
  */
 export const registerUser = async (email, password, name) => {
   try {
-    const response = await post('/register/', {
+    const response = await post('/api/register/', {
       email,
       password,
       name
@@ -32,11 +32,11 @@ export const registerUser = async (email, password, name) => {
  */
 export const loginUser = async (email, password) => {
   try {
-    const response = await post('/login/', {
-      email: email,
+    const response = await post('/api/login', {
+      username: email,
       password: password
     });
-    
+     
     return response;
   } catch (error) {
     console.error('Login error:', error);
@@ -51,7 +51,7 @@ export const loginUser = async (email, password) => {
  */
 export const checkUserLearningPath = async (userId) => {
   try {
-    const response = await get(`/users/${userId}/learning_path/`);
+    const response = await get(`/api/users/${userId}/learning_path/`);
     return response;
   } catch (error) {
     // If 404, user doesn't have a learning path yet

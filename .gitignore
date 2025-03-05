@@ -3,3 +3,4 @@ node_modules
 venv
 db.sqlite3
 *.pyc
+server2

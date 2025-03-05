@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { X, Trash, PlusCircle } from 'lucide-react';
+import { createProject } from '../services/projectService';
 
-const AddProjectModal = ({ show, onClose, onSubmit }) => {
+const AddProjectModal = ({ show, onClose, onProjectAdded }) => {
   const [projectName, setProjectName] = useState('');
   const [projectDescription, setProjectDescription] = useState('');
   const [subjects, setSubjects] = useState([{ subject_name: '', topics: [''] }]);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const handleAddSubject = () => {
     setSubjects([...subjects, { subject_name: '', topics: [''] }]);
@@ -39,13 +42,37 @@ const AddProjectModal = ({ show, onClose, onSubmit }) => {
     setSubjects(newSubjects);
   };
 
-  const handleFormSubmit = () => {
-    const projectData = {
-      project_name: projectName,
-      project_description: projectDescription,
-      subjects: subjects
-    };
-    onSubmit(projectData);
+  const handleFormSubmit = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const projectData = {
+        project_name: projectName,
+        project_description: projectDescription,
+        subjects: subjects.map(subject => ({
+          subject_name: subject.subject_name,
+          topics: subject.topics.filter(topic => topic.trim() !== '')
+        }))
+      };
+      
+      await createProject(projectData);
+      
+      // Clear form
+      setProjectName('');
+      setProjectDescription('');
+      setSubjects([{ subject_name: '', topics: [''] }]);
+      
+      // Close modal and notify parent
+      onClose();
+      if (onProjectAdded) {
+        onProjectAdded();
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to create project');
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (!show) return null;
@@ -62,6 +89,13 @@ const AddProjectModal = ({ show, onClose, onSubmit }) => {
             <X className="h-6 w-6" />
           </button>
         </div>
+        
+        {error && (
+          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
+            {error}
+          </div>
+        )}
+
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Project Name</label>

@@ -30,6 +30,7 @@ const chartData = [
 const AdminDashboard = () => {
   const [showAddEmployeeModal, setShowAddEmployeeModal] = useState(false);
   const [showAddProjectModal, setShowAddProjectModal] = useState(false);
+  const [projectRefreshKey, setProjectRefreshKey] = useState(0);
 
   useEffect(() => {
     if (showAddEmployeeModal || showAddProjectModal) {
@@ -53,6 +54,11 @@ const AdminDashboard = () => {
     setShowAddEmployeeModal(false);
   };
 
+  const handleProjectAdded = () => {
+    // Increment the refresh key to trigger a re-fetch
+    setProjectRefreshKey(prev => prev + 1);
+  };
+
   return (
     <div className={"space-y-6"}>
       <StatsOverview 
@@ -71,12 +77,14 @@ const AdminDashboard = () => {
       <ProjectList 
         projects={projectData} 
         onAddProject={() => setShowAddProjectModal(true)} 
+        refreshTrigger={projectRefreshKey}
       />
 
       <AddProjectModal
         show={showAddProjectModal}
         onClose={() => setShowAddProjectModal(false)}
         onSubmit={handleAddProject}
+        onProjectAdded={handleProjectAdded}
       />
 
       <AddEmployeeModal
