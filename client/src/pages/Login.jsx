@@ -27,6 +27,7 @@ const Login = () => {
         await fetchLearningPath();
         // If we got a skill assessment quiz, redirect to skill assessment page
         if (skillAssessment) {
+          console.log(skillAssessment)
           navigate('/skill-assessment');
         } else {
           navigate('/dashboard');

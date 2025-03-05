@@ -2,91 +2,39 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { CheckCircle, XCircle, HelpCircle, ArrowRight } from 'lucide-react';
 
-// Mock quiz data
-const quizzes = {
-  '1': {
-    topicName: 'JavaScript Fundamentals',
-    questions: [
-      {
-        id: '1',
-        question: 'Which of the following is NOT a JavaScript data type?',
-        options: [
-          { id: 'a', text: 'String' },
-          { id: 'b', text: 'Boolean' },
-          { id: 'c', text: 'Float' },
-          { id: 'd', text: 'Object' }
-        ],
-        correctAnswer: 'c'
-      },
-      {
-        id: '2',
-        question: 'What does the "===" operator do in JavaScript?',
-        options: [
-          { id: 'a', text: 'Assigns a value to a variable' },
-          { id: 'b', text: 'Compares values and types' },
-          { id: 'c', text: 'Compares only values' },
-          { id: 'd', text: 'Logical OR operation' }
-        ],
-        correctAnswer: 'b'
-      },
-      {
-        id: '3',
-        question: 'Which method is used to add an element to the end of an array?',
-        options: [
-          { id: 'a', text: 'push()' },
-          { id: 'b', text: 'pop()' },
-          { id: 'c', text: 'shift()' },
-          { id: 'd', text: 'unshift()' }
-        ],
-        correctAnswer: 'a'
-      }
-    ]
-  },
-  '2': {
-    topicName: 'React Basics',
-    questions: [
-      {
-        id: '1',
-        question: 'What is JSX in React?',
-        options: [
-          { id: 'a', text: 'JavaScript XML - A syntax extension for JavaScript' },
-          { id: 'b', text: 'A JavaScript library for building user interfaces' },
-          { id: 'c', text: 'JavaScript Extra - A new version of JavaScript' },
-          { id: 'd', text: 'A database query language' }
-        ],
-        correctAnswer: 'a'
-      },
-      {
-        id: '2',
-        question: 'Which hook is used to add state to a functional component?',
-        options: [
-          { id: 'a', text: 'useEffect' },
-          { id: 'b', text: 'useState' },
-          { id: 'c', text: 'useContext' },
-          { id: 'd', text: 'useReducer' }
-        ],
-        correctAnswer: 'b'
-      },
-      {
-        id: '3',
-        question: 'What is the correct way to render a list in React?',
-        options: [
-          { id: 'a', text: 'Using a for loop inside the render method' },
-          { id: 'b', text: 'Using the map() function on an array' },
-          { id: 'c', text: 'Using the forEach() method' },
-          { id: 'd', text: 'Using a while loop' }
-        ],
-        correctAnswer: 'b'
-      }
-    ]
-  }
+// Function to parse quiz data into required format
+const parseQuizData = (rawQuizData) => {
+  if (!rawQuizData) return null;
+  
+  return {
+    topicName: rawQuizData.topic_name || rawQuizData.projectName || 'Skill Assessment',
+    questions: rawQuizData.questions.map((q, index) => {
+      // First create the options array
+      const options = q.options.map((opt, optIndex) => ({
+        id: opt.id || String.fromCharCode(97 + optIndex), // Convert 0,1,2,3 to a,b,c,d
+        text: opt.text || opt
+      }));
+      
+      // Find the option ID that matches the correct answer text
+      const correctAnswerText = q.correct_answer || q.correctAnswer;
+      const correctOption = options.find(opt => opt.text === correctAnswerText);
+      const correctAnswerId = correctOption ? correctOption.id : options[0].id;
+      
+      return {
+        id: q.id || String(index + 1),
+        question: q.question,
+        options,
+        correctAnswer: correctAnswerId
+      };
+    })
+  };
 };
 
 const Quiz = ({ quizData, onComplete, isSkillAssessment = false }) => {
   const { topicId } = useParams();
   const navigate = useNavigate();
   
-  const [currentQuizData, setCurrentQuizData] = useState(quizData || null);
+  const [currentQuizData, setCurrentQuizData] = useState(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState(null);
   const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
@@ -95,12 +43,14 @@ const Quiz = ({ quizData, onComplete, isSkillAssessment = false }) => {
   const [score, setScore] = useState(0);
   
   useEffect(() => {
-    if (!quizData && topicId && quizzes[topicId]) {
-      setCurrentQuizData(quizzes[topicId]);
-    } else if (!quizData) {
+    if (quizData) {
+      const parsedData = parseQuizData(quizData);
+      console.log(parsedData)
+      setCurrentQuizData(parsedData);
+    } else {
       navigate('/dashboard');
     }
-  }, [topicId, navigate, quizData]);
+  }, [quizData, navigate]);
   
   if (!currentQuizData) {
     return (

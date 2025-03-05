@@ -32,6 +32,7 @@ export const LearningPathProvider = ({ children }) => {
         try {
           const quizData = await getSkillAssessmentQuiz();
           setSkillAssessment(quizData);
+          
           setLearningPath(null);
         } catch (quizError) {
           console.error('Error fetching skill assessment:', quizError);
