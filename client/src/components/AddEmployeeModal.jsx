@@ -1,7 +1,55 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { X } from 'lucide-react';
 
 const AddEmployeeModal = ({ show, onClose, onSubmit, projects }) => {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    projectId: ''
+  });
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    const { id, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [id]: value
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    try {
+      const [firstName, ...lastNameParts] = formData.name.trim().split(' ');
+      const lastName = lastNameParts.join(' ');
+
+      const employeeData = {
+        first_name: firstName,
+        last_name: lastName || '',
+        email: formData.email,
+        project_id: formData.projectId ? parseInt(formData.projectId) : null
+      };
+
+      await onSubmit(employeeData);
+      
+      // Reset form
+      setFormData({
+        name: '',
+        email: '',
+        projectId: ''
+      });
+      onClose();
+    } catch (err) {
+      setError(err.message || 'Failed to add employee');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!show) return null;
 
   return (
@@ -13,7 +61,14 @@ const AddEmployeeModal = ({ show, onClose, onSubmit, projects }) => {
             <X className="h-5 w-5 text-gray-500" />
           </button>
         </div>
-        <form onSubmit={onSubmit}>
+
+        {error && (
+          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
               Full Name
@@ -21,6 +76,8 @@ const AddEmployeeModal = ({ show, onClose, onSubmit, projects }) => {
             <input
               id="name"
               type="text"
+              value={formData.name}
+              onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
               placeholder="John Doe"
               required
@@ -33,22 +90,26 @@ const AddEmployeeModal = ({ show, onClose, onSubmit, projects }) => {
             <input
               id="email"
               type="email"
+              value={formData.email}
+              onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
               placeholder="john@example.com"
               required
             />
           </div>
           <div className="mb-4">
-            <label htmlFor="project" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="projectId" className="block text-sm font-medium text-gray-700 mb-1">
               Assign to Project
             </label>
             <select
-              id="project"
+              id="projectId"
+              value={formData.projectId}
+              onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
               required
             >
               <option value="">Select a project</option>
-              {projects.map(project => (
+              {projects?.map(project => (
                 <option key={project.id} value={project.id}>{project.name}</option>
               ))}
             </select>
@@ -58,14 +119,16 @@ const AddEmployeeModal = ({ show, onClose, onSubmit, projects }) => {
               type="button"
               onClick={onClose}
               className="mr-3 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+              disabled={loading}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
+              className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 disabled:opacity-50"
+              disabled={loading}
             >
-              Add Employee
+              {loading ? 'Adding...' : 'Add Employee'}
             </button>
           </div>
         </form>

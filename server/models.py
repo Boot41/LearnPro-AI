@@ -61,3 +61,19 @@ class Topic(Base):
     description = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+class LearningPath(Base):
+    __tablename__ = "learning_paths"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    total_topics = Column(Integer, default=0)
+    completed_topics = Column(Integer, default=0)
+    learning_path = Column(String)  # JSON string for learning path data
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    # Relationships
+    user = relationship("User", backref="learning_paths")
+    project = relationship("Project", backref="learning_paths")

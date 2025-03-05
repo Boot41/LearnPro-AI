@@ -1,34 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { PlusCircle } from 'lucide-react';
-import { getProjects } from '../services/projectService';
-import { isAuthenticated } from '../utils/auth';
 
-const ProjectList = ({ onAddProject, refreshTrigger }) => {
-  const [projects, setProjects] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  const fetchProjects = useCallback(async () => {
-    try {
-      // Check if user is authenticated
-      if (!isAuthenticated()) {
-        setError('Please log in to view projects');
-        setLoading(false);
-        return;
-      }
-
-      const data = await getProjects();
-      setProjects(data);
-      setLoading(false);
-    } catch (err) {
-      setError(err.message || 'Failed to fetch projects');
-      setLoading(false);
-    }
-  }, [refreshTrigger]);
-
-  useEffect(() => {
-    fetchProjects();
-  }, [fetchProjects, refreshTrigger]);
+const ProjectList = ({ onAddProject, projects, loading,error }) => {
 
   if (loading) {
     return (

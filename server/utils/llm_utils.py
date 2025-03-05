@@ -77,64 +77,65 @@ def generate_assignment_questions(subjects):
     except Exception as e:
         raise Exception(f"Unexpected error: {str(e)}")
 
+
+learning_paths_json_structure = """ 
+{
+    "total_estimated_hours": '<total_hours>',
+    "subjects":[
+        {
+            "subject_name": "<subject_name>",
+            "is_completed": "false",
+            "estimated_hours": '<estimated_hours>',
+            "assessment": {
+                "threshold": '<threshold>',
+                "score": 'null',
+                "status": "pending"
+            },
+            "topics": [
+                {
+                    "topic_name": "<topic_name>",
+                    "is_completed": "false"
+                }
+            ]
+        }
+    ],
+    "official_docs": "<official_documentation_link>"
+}
+"""
+
 def generate_learning_path(topics: List[str], scores: Dict[str, int]) -> Dict[str, Any]:
     """
     Generate a personalized learning path based on the provided topics and initial quiz scores.
-    For each topic, the generated learning path will include a multiple choice quiz with advanced questions,
-    an estimated number of study hours, an assessment configuration, and a link to official documentation.
+    For each topic, the generated learning path will include an estimated number of study hours,
+    an assessment configuration, and a link to official documentation.
     """
     GROQ_API_KEY = os.getenv('GROQ_API_KEY')
     if not GROQ_API_KEY:
         raise ValueError("GROQ_API_KEY environment variable is not set")
     
     # Map each topic to its initial score for context
-    topics_scores = "\n".join([f"{topic}: {scores.get(topic, 'N/A')}" for topic in topics])
+    topics_scores = " ".join([f"{topic}: {scores.get(topic, 'N/A')}" for topic in topics])
     
-    prompt = f"""Generate a personalized learning path for a professional project using the following topics and their corresponding initial quiz scores:
-{topics_scores}
+    prompt = f"""Generate a personalized learning path for a professional project using the following topics and their corresponding initial quiz scores: {topics_scores}
 
 For each topic, generate:
-- A multiple choice quiz with challenging questions appropriate for professional assessment.
-- An estimated number of study hours required for mastery.
-- An assessment configuration that includes a passing threshold.
-- A link to official, freely available documentation (avoid promotional or unofficial sources).
-
+    - An estimated number of study hours required for mastery.
+    - An assessment configuration that includes a passing threshold.
+    - A link to official, freely available documentation (avoid promotional or unofficial sources).
+    - Make sure you go in depth with each subject and there are enough numbers of topics in each subject.
 Return the response in the following JSON format:
-{{
-    "learning_path": {{
-        "total_estimated_hours": <total_hours>,
-        "topics": [
-            {{
-                "topic_name": "<topic_name>",
-                "quiz": {{
-                    "questions": [
-                        {{
-                            "question": "<question_text>",
-                            "options": ["<option1>", "<option2>", "<option3>", "<option4>"],
-                            "correct_answer": "<correct_option>"
-                        }}
-                    ],
-                    "passing_score": <passing_score>
-                }},
-                "estimated_hours": <estimated_hours>,
-                "assessment": {{
-                    "threshold": <threshold>,
-                    "score": null,
-                    "status": "pending"
-                }},
-                "official_docs": "<official_documentation_link>"
-            }}
-        ]
-    }},
-    "calendar_locked": false
-}}
+{learning_paths_json_structure}
 Make sure the response is a valid JSON string."""
-    
+
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {GROQ_API_KEY}"
     }
+
+    # GROQ API endpoint
+    url = "https://api.groq.com/v1/completions"
     
+    # Request body
     data = {
         "model": "llama-3.3-70b-versatile",
         "messages": [{
@@ -160,10 +161,11 @@ Make sure the response is a valid JSON string."""
         
         learning_path_data = json.loads(json_str)
         return learning_path_data
-
+            
     except requests.exceptions.RequestException as e:
         raise Exception(f"Error calling Groq API: {str(e)}")
     except json.JSONDecodeError as e:
         raise Exception(f"Error parsing LLM response as JSON: {str(e)}")
     except Exception as e:
         raise Exception(f"Unexpected error: {str(e)}")
+

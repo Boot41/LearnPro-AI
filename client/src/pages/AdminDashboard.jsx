@@ -1,25 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import StatsOverview from '../components/StatsOverview';
 import ProjectChart from '../components/ProjectChart';
 import EmployeeList from '../components/EmployeeList';
 import ProjectList from '../components/ProjectList';
 import AddProjectModal from '../components/AddProjectModal';
 import AddEmployeeModal from '../components/AddEmployeeModal';
-
-// Mock data
-const employeeData = [
-  { id: '1', name: 'John Doe', email: 'john@example.com', progress: 75, project: 'Web Development' },
-  { id: '2', name: 'Jane Smith', email: 'jane@example.com', progress: 45, project: 'Mobile App' },
-  { id: '3', name: 'Robert Johnson', email: 'robert@example.com', progress: 90, project: 'Data Analysis' },
-  { id: '4', name: 'Emily Davis', email: 'emily@example.com', progress: 30, project: 'Web Development' },
-  { id: '5', name: 'Michael Wilson', email: 'michael@example.com', progress: 60, project: 'Mobile App' },
-];
-
-const projectData = [
-  { id: '1', name: 'Web Development', employees: 2, completionRate: 52.5 },
-  { id: '2', name: 'Mobile App', employees: 2, completionRate: 52.5 },
-  { id: '3', name: 'Data Analysis', employees: 1, completionRate: 90 },
-];
+import { getEmployees } from '../services/employeeService';
+import { getProjects } from '../services/projectService';
 
 const chartData = [
   { name: 'Web Dev', completion: 52.5 },
@@ -30,7 +17,37 @@ const chartData = [
 const AdminDashboard = () => {
   const [showAddEmployeeModal, setShowAddEmployeeModal] = useState(false);
   const [showAddProjectModal, setShowAddProjectModal] = useState(false);
-  const [projectRefreshKey, setProjectRefreshKey] = useState(0);
+  const [employees, setEmployees] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [projectData,setProjectData] = useState([])
+
+
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      try {
+        const data = await getEmployees();
+        setEmployees(data);
+        setLoading(false);
+      } catch (err) {
+        setError('Failed to fetch employees');
+        setLoading(false);
+      }
+    };
+    const fetchProjects = async () => {
+    try {
+      const data = await getProjects();
+      setProjectData(data);
+      setLoading(false);
+    } catch (err) {
+      setError(err.message || 'Failed to fetch projects');
+      setLoading(false);
+    }
+  };
+
+    fetchEmployees();
+    fetchProjects();
+  }, []);
 
   useEffect(() => {
     if (showAddEmployeeModal || showAddProjectModal) {
@@ -49,35 +66,62 @@ const AdminDashboard = () => {
     setShowAddProjectModal(false);
   };
 
-  const handleAddEmployee = (employeeData) => {
-    console.log('New Employee:', employeeData);
-    setShowAddEmployeeModal(false);
+  const handleAddEmployee = async (employeeData) => {
+    try {
+      // TODO: Implement employee creation API
+      console.log('New Employee:', employeeData);
+      setShowAddEmployeeModal(false);
+      
+      // Refresh employee list
+      const data = await getEmployees();
+      setEmployees(data);
+    } catch (err) {
+      console.error('Failed to add employee:', err);
+    }
   };
 
   const handleProjectAdded = () => {
-    // Increment the refresh key to trigger a re-fetch
     setProjectRefreshKey(prev => prev + 1);
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-gray-500">Loading dashboard...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-red-500">{error}</p>
+      </div>
+    );
+  }
+
+
 
   return (
     <div className={"space-y-6"}>
       <StatsOverview 
-        employeeCount={employeeData.length}
+        employeeCount={employees.length}
         projectCount={projectData.length}
         averageCompletion={Math.round(projectData.reduce((acc, curr) => acc + curr.completionRate, 0) / projectData.length)}
       />
 
-      <ProjectChart data={chartData} />
+      <ProjectChart data={projectData} />
 
       <EmployeeList 
-        employees={employeeData} 
+        employees={employees} 
         onAddEmployee={() => setShowAddEmployeeModal(true)} 
       />
 
       <ProjectList 
-        projects={projectData} 
+        loading={loading}
+        projects={projectData}
+        error={error}
         onAddProject={() => setShowAddProjectModal(true)} 
-        refreshTrigger={projectRefreshKey}
       />
 
       <AddProjectModal

@@ -1,7 +1,8 @@
-from pydantic import BaseModel, EmailStr, field_validator
-from typing import Optional, List
+from pydantic import BaseModel, EmailStr, field_validator, validator, Field
+from typing import Optional, List, Dict
 from models import UserType
 from datetime import datetime
+from enum import Enum
 
 class UserBase(BaseModel):
     username: str
@@ -76,7 +77,37 @@ class Project(ProjectBase):
     class Config:
         from_attributes = True
 
-class ProjectCreate(BaseModel):
+class AssignedProject(BaseModel):
+    id: int
     name: str
-    description: str
-    subjects: List[SubjectCreate]
+    progress: float
+    last_activity: Optional[datetime] = None
+
+class EmployeeWithProgress(BaseModel):
+    id: int
+    email: EmailStr
+    name: str
+    progress: float
+    assigned_projects: List[AssignedProject] = []
+    last_activity: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+class LearningPathBase(BaseModel):
+    user_id: int
+    project_id: int
+    total_topics: int = 0
+    completed_topics: int = 0
+    learning_path: str  # JSON string
+
+class LearningPathCreate(LearningPathBase):
+    pass
+
+class LearningPath(LearningPathBase):
+    id: int
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
