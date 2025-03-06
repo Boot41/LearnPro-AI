@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BookOpen, Clock, CheckCircle, Calendar, PlusCircle } from 'lucide-react';
 import { format, addDays } from 'date-fns';
+import { useLearningPath } from '../contexts/LearningPathContext';
 
 // Mock learning path data
 const learningPathData = {
@@ -108,7 +109,13 @@ const LearningPath = () => {
   const handleTakeAssessment = (topicId) => {
     navigate(`/assessment/${topicId}`);
   };
-  
+
+  const { learningPath } = useLearningPath();
+  // console.log(learningPath);
+  const path = JSON.parse(learningPath.learning_path);
+  path.created_at = new Date(learningPath.created_at);
+  path.progressPercentage = (learningPath.completed_topics/learningPath.total_topics) * 100;
+  console.log(path)
   return (
     <div className="space-y-6">
       {/* Learning path overview */}
@@ -117,7 +124,7 @@ const LearningPath = () => {
           <div>
             <h2 className="text-xl font-semibold text-gray-900">Your Learning Path</h2>
             <p className="text-gray-500 mt-1">
-              Project: {learningPathData.project} • Generated on {format(learningPathData.generatedOn, 'MMM dd, yyyy')}
+              Project: {path.learning_path_name} • Generated on {format(path.created_at, 'MMM dd, yyyy')}
             </p>
           </div>
           <div className="mt-4 md:mt-0">
@@ -125,13 +132,13 @@ const LearningPath = () => {
               <div className="w-48 bg-gray-200 rounded-full h-2.5 mr-2">
                 <div 
                   className="bg-indigo-600 h-2.5 rounded-full" 
-                  style={{ width: `${progressPercentage}%` }}
+                  style={{ width: `${path.progressPercentage}%` }}
                 ></div>
               </div>
-              <span className="text-sm font-medium text-gray-700">{Math.round(progressPercentage)}%</span>
+              <span className="text-sm font-medium text-gray-700">{Math.round(path.progressPercentage)}%</span>
             </div>
             <p className="text-xs text-gray-500 mt-1">
-              {completedHours} of {learningPathData.estimatedHours} hours completed
+              {learningPath.completed_topics} of {learningPath.total_topics} topics completed
             </p>
           </div>
         </div>
@@ -142,7 +149,7 @@ const LearningPath = () => {
         <div className="p-6 border-b flex justify-between items-center">
           <div>
             <h2 className="text-lg font-semibold text-gray-900">Learning Timeline</h2>
-            <p className="text-sm text-gray-500 mt-1">Estimated {learningPathData.estimatedHours} hours to complete</p>
+            <p className="text-sm text-gray-500 mt-1">Estimated {path.total_estimated_hours} hours to complete</p>
           </div>
           <button 
             onClick={() => setShowCalendarModal(true)}
@@ -159,12 +166,12 @@ const LearningPath = () => {
           
           {/* Timeline items */}
           <div className="divide-y divide-gray-100">
-            {learningPathData.topics.map((topic, index) => (
+            {path.subjects.map((topic, index) => (
               <div key={topic.id} className="p-6 pl-16 relative">
                 {/* Timeline marker */}
                 <div className={`absolute left-6 top-8 w-4 h-4 rounded-full border-2 ${
-                  topic.status === 'completed' ? 'bg-green-500 border-green-500' :
-                  topic.status === 'in-progress' ? 'bg-white border-indigo-500' :
+                  topic.is_completed === 'completed' ? 'bg-green-500 border-green-500' :
+                  topic.is_completed === 'in-progress' ? 'bg-white border-indigo-500' :
                   'bg-white border-gray-300'
                 }`}></div>
                 
@@ -172,14 +179,14 @@ const LearningPath = () => {
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between">
                   <div>
                     <div className="flex items-center">
-                      <h3 className="text-md font-medium text-gray-900">{topic.name}</h3>
+                      <h3 className="text-md font-medium text-gray-900">{topic.subject_name}</h3>
                       <div className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
                         topic.status === 'completed' ? 'bg-green-100 text-green-800' :
                         topic.status === 'in-progress' ? 'bg-blue-100 text-blue-800' :
                         'bg-gray-100 text-gray-800'
                       }`}>
-                        {topic.status === 'completed' ? 'Completed' : 
-                         topic.status === 'in-progress' ? 'In Progress' : 
+                        {topic.is_completed === 'completed' ? 'Completed' : 
+                         topic.is_completed === 'in-progress' ? 'In Progress' : 
                          'Not Started'}
                       </div>
                     </div>
@@ -191,15 +198,15 @@ const LearningPath = () => {
                     
                     {/* Subtopics */}
                     <div className="mt-3 space-y-1">
-                      {topic.subtopics.map((subtopic, idx) => (
+                      {topic.topics.map((subtopic, idx) => (
                         <div key={idx} className="flex items-center text-sm">
-                          {subtopic.completed ? (
+                          {subtopic.is_completed === 'completed' ? (
                             <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
                           ) : (
                             <div className="h-4 w-4 border border-gray-300 rounded-full mr-2"></div>
                           )}
-                          <span className={subtopic.completed ? 'text-gray-500 line-through' : 'text-gray-700'}>
-                            {subtopic.name}
+                          <span className={subtopic.is_completed === 'completed' ? 'text-gray-500 line-through' : 'text-gray-700'}>
+                            {subtopic.topic_name}
                           </span>
                         </div>
                       ))}
@@ -209,7 +216,7 @@ const LearningPath = () => {
                     <div className="mt-4">
                       <p className="text-sm font-medium text-gray-700">Official Documentation:</p>
                       <div className="mt-1 space-y-1">
-                        {topic.resources.map(resource => (
+                        {topic?.resources?.map(resource => (
                           <a 
                             key={resource.id}
                             href={resource.url}

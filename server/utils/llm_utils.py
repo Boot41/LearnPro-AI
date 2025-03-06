@@ -82,6 +82,7 @@ def generate_assignment_questions(subjects):
 
 learning_paths_json_structure = """ 
 {
+    "path_name":'<learning_path_name>',
     "total_estimated_hours": '<total_hours>',
     "subjects":[
         {
