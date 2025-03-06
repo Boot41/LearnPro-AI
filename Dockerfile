@@ -1,6 +1,9 @@
 # Stage 1: Build the Vite client
 FROM node:22 AS client_build
 WORKDIR /app/client
+
+ENV VITE_BASE_URL="https://learnpro-mha4s7stfa-el.a.run.app"
+
 # Copy package files and install dependencies
 COPY client/package*.json ./
 RUN npm install

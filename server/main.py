@@ -21,6 +21,7 @@ origins = [
     "http://localhost:3000",  # Just in case you use a different port
     "http://127.0.0.1:5173",
     "http://127.0.0.1:8000",
+    "https://learnpro-mha4s7stfa-el.a.run.app"
     "http://0.0.0.0:8000",
     "http://127.0.0.1:3000",
 ]
@@ -72,11 +73,11 @@ app.include_router(projects.router)
 app.include_router(learning_paths.router)
 app.include_router(skill_assessments.router)
 
-@app.get("/static", response_class=HTMLResponse)
+@app.get("/", response_class=HTMLResponse)
 async def serve_home():
     with open("static/index.html", "r") as f:
         return f.read()
 
-@app.get("/")
+@app.get("/test")
 def read_root():
     return {"Hello": "Welcome to LearnPro API"}
