@@ -20,6 +20,7 @@ origins = [
     "http://localhost:5173",  # Vite default development server
     "http://localhost:3000",  # Just in case you use a different port
     "http://127.0.0.1:5173",
+    "http://127.0.0.1:8000",
     "http://0.0.0.0:8000",
     "http://127.0.0.1:3000",
 ]

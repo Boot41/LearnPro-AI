@@ -154,7 +154,22 @@ const Quiz = ({ quizData, onComplete, isSkillAssessment = false }) => {
   if (quizCompleted) {
     const totalQuestions = currentQuizData.questions.length;
     const scorePercentage = (score / totalQuestions) * 100;
-    
+    let ctaMessage     
+    if (isSkillAssessment ) {
+      if (scorePercentage >= 70) {
+        ctaMessage = "Great job! We'll create a personalized learning path based on your results.";
+      } else {
+        ctaMessage = "Let's focus on improving your knowledge. We'll create a personalized learning path to help you master this topic.";
+      }    
+    }
+    else {
+      if (scorePercentage >= 70) {
+        ctaMessage = "You've done great! Keep up the good work.";
+      } else {
+        ctaMessage = "You're making progress! Consider reviewing to strengthen your understanding.";
+      }
+    }
+
     return (
       <div className="bg-white rounded-lg shadow-lg max-w-2xl mx-auto p-8">
         <div className="text-center mb-8">
@@ -191,15 +206,13 @@ const Quiz = ({ quizData, onComplete, isSkillAssessment = false }) => {
         
         <div className="text-center">
           <p className="text-gray-700 mb-6">
-            {scorePercentage >= 70 
-              ? "Great job! We'll create a personalized learning path based on your results."
-              : "Let's focus on improving your knowledge. We'll create a personalized learning path to help you master this topic."}
+            {ctaMessage}
           </p>
           <button
             onClick={handleFinishQuiz}
             className="px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-medium"
           >
-            View Your Learning Path
+            {isSkillAssessment ? 'View Your Learning Path' : 'Go Back to Learning Path'}
           </button>
         </div>
       </div>
@@ -240,29 +253,31 @@ const Quiz = ({ quizData, onComplete, isSkillAssessment = false }) => {
                   : 'border-gray-200 hover:border-gray-300'
               }`}
             >
-              <div className="flex items-center">
-                <div className={`w-5 h-5 rounded-full border flex items-center justify-center mr-3 ${
-                  selectedOption === option.id 
-                    ? isAnswerSubmitted
-                      ? option.id === currentQuestion.correctAnswer
-                        ? 'border-green-500 bg-green-500'
-                        : 'border-red-500 bg-red-500'
-                      : 'border-indigo-500 bg-indigo-500'
-                    : 'border-gray-300'
-                }`}>
-                  {selectedOption === option.id && (
-                    isAnswerSubmitted ? (
-                      option.id === currentQuestion.correctAnswer ? (
-                        <CheckCircle className="h-4 w-4 text-white" />
+              <div className="flex">
+                <div className="flex-shrink-0 my-auto">
+                  <div className={`w-5 h-5 rounded-full border flex items-center justify-center mr-3 ${
+                    selectedOption === option.id 
+                      ? isAnswerSubmitted
+                        ? option.id === currentQuestion.correctAnswer
+                          ? 'border-green-500 bg-green-500'
+                          : 'border-red-500 bg-red-500'
+                        : 'border-indigo-500 bg-indigo-500'
+                      : 'border-gray-300'
+                  }`}>
+                    {selectedOption === option.id && (
+                      isAnswerSubmitted ? (
+                        option.id === currentQuestion.correctAnswer ? (
+                          <CheckCircle className="h-4 w-4 text-white" />
+                        ) : (
+                          <XCircle className="h-4 w-4 text-white" />
+                        )
                       ) : (
-                        <XCircle className="h-4 w-4 text-white" />
+                        <div className="w-2 h-2 rounded-full bg-white"></div>
                       )
-                    ) : (
-                      <div className="w-2 h-2 rounded-full bg-white"></div>
-                    )
-                  )}
+                    )}
+                  </div>
                 </div>
-                <span className={`${
+                <span className={`flex-1 ${
                   isAnswerSubmitted && option.id === currentQuestion.correctAnswer
                     ? 'font-medium text-green-700'
                     : ''

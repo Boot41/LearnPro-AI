@@ -7,11 +7,12 @@ import {
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { LearningPathProvider } from "./contexts/LearningPathContext";
+import { QuizProvider } from "./contexts/QuizContext";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import AdminDashboard from "./pages/AdminDashboard";
 import EmployeeDashboard from "./pages/EmployeeDashboard";
-import Quiz from "./pages/Quiz";
+import QuizWrapper from "./pages/QuizWrapper";
 import QuizMCQ from "./pages/QuizMCQ";
 import LearningPath from "./pages/LearningPath";
 import Assessment from "./pages/Assessment";
@@ -38,6 +39,7 @@ function App() {
   return (
     <AuthProvider>
       <LearningPathProvider>
+        <QuizProvider>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
@@ -63,10 +65,10 @@ function App() {
               }
             />
             <Route
-              path="/quiz/:topicId"
+              path="/quiz/"
               element={
                 <ProtectedRoute requiredRole="employee">
-                  <Quiz />
+                  <QuizWrapper />
                 </ProtectedRoute>
               }
             />
@@ -116,6 +118,7 @@ function App() {
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
+        </QuizProvider>
       </LearningPathProvider>
     </AuthProvider>
   );

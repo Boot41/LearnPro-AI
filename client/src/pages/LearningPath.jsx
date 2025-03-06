@@ -3,107 +3,43 @@ import { useNavigate } from 'react-router-dom';
 import { BookOpen, Clock, CheckCircle, Calendar, PlusCircle } from 'lucide-react';
 import { format, addDays } from 'date-fns';
 import { useLearningPath } from '../contexts/LearningPathContext';
-
-// Mock learning path data
-const learningPathData = {
-  project: 'Web Development',
-  generatedOn: new Date(),
-  estimatedHours: 24,
-  topics: [
-    {
-      id: '1',
-      name: 'JavaScript Fundamentals',
-      status: 'completed',
-      estimatedHours: 6,
-      resources: [
-        { id: '1', title: 'JavaScript MDN', url: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript' },
-        { id: '2', title: 'JavaScript.info', url: 'https://javascript.info/' }
-      ],
-      subtopics: [
-        { name: 'Variables and Data Types', completed: true },
-        { name: 'Functions and Scope', completed: true },
-        { name: 'Arrays and Objects', completed: true },
-        { name: 'Asynchronous JavaScript', completed: true }
-      ]
-    },
-    {
-      id: '2',
-      name: 'React Basics',
-      status: 'in-progress',
-      estimatedHours: 8,
-      resources: [
-        { id: '1', title: 'React Documentation', url: 'https://reactjs.org/docs/getting-started.html' },
-        { id: '2', title: 'React Hooks Reference', url: 'https://reactjs.org/docs/hooks-reference.html' }
-      ],
-      subtopics: [
-        { name: 'JSX and Components', completed: true },
-        { name: 'Props and State', completed: true },
-        { name: 'Hooks', completed: false },
-        { name: 'Component Lifecycle', completed: false }
-      ]
-    },
-    {
-      id: '3',
-      name: 'State Management',
-      status: 'not-started',
-      estimatedHours: 5,
-      resources: [
-        { id: '1', title: 'Redux Documentation', url: 'https://redux.js.org/introduction/getting-started' },
-        { id: '2', title: 'Context API', url: 'https://reactjs.org/docs/context.html' }
-      ],
-      subtopics: [
-        { name: 'Redux Basics', completed: false },
-        { name: 'Context API', completed: false },
-        { name: 'State Management Patterns', completed: false }
-      ]
-    },
-    {
-      id: '4',
-      name: 'API Integration',
-      status: 'not-started',
-      estimatedHours: 5,
-      resources: [
-        { id: '1', title: 'Fetch API', url: 'https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API' },
-        { id: '2', title: 'Axios Documentation', url: 'https://axios-http.com/docs/intro' }
-      ],
-      subtopics: [
-        { name: 'RESTful APIs', completed: false },
-        { name: 'Fetch and Axios', completed: false },
-        { name: 'Error Handling', completed: false },
-        { name: 'Authentication', completed: false }
-      ]
-    }
-  ],
-  schedule: [
-    { date: addDays(new Date(), 1), topics: ['React Basics'], hours: 2 },
-    { date: addDays(new Date(), 2), topics: ['React Basics'], hours: 2 },
-    { date: addDays(new Date(), 3), topics: ['State Management'], hours: 2 },
-    { date: addDays(new Date(), 4), topics: ['State Management'], hours: 2 },
-    { date: addDays(new Date(), 5), topics: ['API Integration'], hours: 2 }
-  ]
-};
+import { useQuiz } from '../contexts/QuizContext';
+import { getQuizByTopicName } from '../services/quizService';
 
 const LearningPath = () => {
   const navigate = useNavigate();
-  const [showCalendarModal, setShowCalendarModal] = useState(false);
-  
-  const completedHours = learningPathData.topics
-    .filter(topic => topic.status === 'completed')
-    .reduce((acc, topic) => acc + topic.estimatedHours, 0);
-  
-  const inProgressHours = learningPathData.topics
-    .filter(topic => topic.status === 'in-progress')
-    .reduce((acc, topic) => acc + topic.estimatedHours, 0);
-  
-  const progressPercentage = (completedHours / learningPathData.estimatedHours) * 100;
-  
+  const { setQuizInfo } = useQuiz();
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadingSubjectId, setLoadingSubjectId] = useState(null);
+
   const handleStartQuiz = (topicId) => {
     navigate(`/quiz/${topicId}`);
   };
   
-  const handleContinueLearning = (topicId) => {
-    // In a real app, this would navigate to the learning content
-    console.log(`Continue learning for topic ${topicId}`);
+  const handleContinueLearning = async (subjectId) => {
+    // Find the subject
+    const subject = path.subjects.find(s => s.id === subjectId);
+    if (!subject) return;
+
+    // Find first incomplete topic
+    const firstIncompleteTopic = subject.topics.find(topic => topic.is_completed !== 'completed');
+    if (!firstIncompleteTopic) return;
+
+    try {
+      setIsLoading(true);
+      setLoadingSubjectId(subjectId);
+      const quizData = await getQuizByTopicName(firstIncompleteTopic.topic_name);
+      // Store quiz data in context and navigate to quiz page
+      console.log(quizData)
+      setQuizInfo(quizData, firstIncompleteTopic.id);
+      navigate('/quiz');
+    } catch (error) {
+      console.error('Error fetching quiz:', error);
+      // You might want to show an error message to the user here
+    } finally {
+      setIsLoading(false);
+      setLoadingSubjectId(null);
+    }
   };
   
   const handleTakeAssessment = (topicId) => {
@@ -111,7 +47,6 @@ const LearningPath = () => {
   };
 
   const { learningPath } = useLearningPath();
-  // console.log(learningPath);
   const path = JSON.parse(learningPath.learning_path);
   path.created_at = new Date(learningPath.created_at);
   path.progressPercentage = (learningPath.completed_topics/learningPath.total_topics) * 100;
@@ -151,13 +86,13 @@ const LearningPath = () => {
             <h2 className="text-lg font-semibold text-gray-900">Learning Timeline</h2>
             <p className="text-sm text-gray-500 mt-1">Estimated {path.total_estimated_hours} hours to complete</p>
           </div>
-          <button 
+          {/* <button 
             onClick={() => setShowCalendarModal(true)}
             className="flex items-center text-sm px-3 py-1.5 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
           >
             <Calendar className="h-4 w-4 mr-1" />
             Schedule Learning
-          </button>
+          </button> */}
         </div>
         
         <div className="relative">
@@ -170,7 +105,7 @@ const LearningPath = () => {
               <div key={topic.id} className="p-6 pl-16 relative">
                 {/* Timeline marker */}
                 <div className={`absolute left-6 top-8 w-4 h-4 rounded-full border-2 ${
-                  topic.is_completed === 'completed' ? 'bg-green-500 border-green-500' :
+                  topic.is_completed ? 'bg-green-500 border-green-500' :
                   topic.is_completed === 'in-progress' ? 'bg-white border-indigo-500' :
                   'bg-white border-gray-300'
                 }`}></div>
@@ -232,31 +167,29 @@ const LearningPath = () => {
                   </div>
                   
                   <div className="mt-4 md:mt-0 flex flex-col space-y-2">
-                    {topic.status === 'not-started' && (
-                      <button
-                        onClick={() => handleStartQuiz(topic.id)}
-                        className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
-                      >
-                        Start Quiz
-                      </button>
-                    )}
-                    {topic.status === 'in-progress' && (
+                    {!topic.is_completed && (
                       <>
                         <button
                           onClick={() => handleContinueLearning(topic.id)}
-                          className="px-4 py-2 text-sm font-medium text-indigo-600 bg-indigo-100 rounded-md hover:bg-indigo-200"
+                          disabled={isLoading}
+                          className={`px-4 py-2 text-sm font-medium text-white ${isLoading && loadingSubjectId === topic.id ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'} rounded-md flex items-center justify-center`}
                         >
-                          Continue Learning
+                          {isLoading && loadingSubjectId === topic.id ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                              Loading...
+                            </>
+                          ) : 'Take Next Quiz'}
                         </button>
                         <button
                           onClick={() => handleTakeAssessment(topic.id)}
-                          className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
+                          className="px-4 py-2 text-sm font-medium text-indigo-600 bg-indigo-100 rounded-md hover:bg-indigo-200"
                         >
                           Take Assessment
                         </button>
                       </>
                     )}
-                    {topic.status === 'completed' && (
+                    {topic.is_completed && (
                       <button
                         onClick={() => handleTakeAssessment(topic.id)}
                         className="px-4 py-2 text-sm font-medium text-green-600 bg-green-100 rounded-md hover:bg-green-200"
@@ -273,7 +206,7 @@ const LearningPath = () => {
       </div>
       
       {/* Calendar schedule */}
-      {showCalendarModal && (
+      {/* {showCalendarModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full p-6">
             <div className="flex justify-between items-center mb-4">
@@ -370,7 +303,7 @@ const LearningPath = () => {
             </div>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 };

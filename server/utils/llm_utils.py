@@ -7,38 +7,10 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-def generate_assignment_questions(subjects):
-    """
-    Generate assignment questions using Groq's LLM API
-    """
+def groq_calling_function(prompt):
     GROQ_API_KEY = os.getenv('GROQ_API_KEY')
     if not GROQ_API_KEY:
         raise ValueError("GROQ_API_KEY environment variable is not set")
-
-    subject_text = "\n\n".join(
-    f"Subject: {subject['subject_name']}\nTopics: {', '.join(subject['topics'])}"
-    for subject in subjects
-    )
-
-    prompt = f"""Generate a multiple choice quiz for the following subjects: \n\n{subject_text}. 
-    Create questions that cover the topics with 4 options each and one correct answer make sure there are enough questions for each topic.
-    The quiz should have more than 15 questions and each topic should be represented with different levels of questions (e.g., easy, medium, hard) from a proffessional point of view.
-    Return the response in the following JSON format:
-    {{
-        "title": "Quiz title",
-        "questions": [
-            {{
-                "id": 1,
-                "question": "Question text",
-                "options": ["option1", "option2", "option3", "option4"],
-                "correctAnswer": "correct option",
-                "points": 10,
-                "topic":"topic"
-            }}
-        ]
-    }}
-    Make sure the response is a valid JSON string."""
-
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {GROQ_API_KEY}"
@@ -69,8 +41,8 @@ def generate_assignment_questions(subjects):
         end = generated_text.rfind('}') + 1
         json_str = generated_text[start:end]
         
-        assignment_data = json.loads(json_str)
-        return assignment_data
+        data = json.loads(json_str)
+        return data
 
     except requests.exceptions.RequestException as e:
         raise Exception(f"Error calling Groq API: {str(e)}")
@@ -78,6 +50,68 @@ def generate_assignment_questions(subjects):
         raise Exception(f"Error parsing LLM response as JSON: {str(e)}")
     except Exception as e:
         raise Exception(f"Unexpected error: {str(e)}")
+
+def generate_toic_quiz(topic):
+    """
+    Generate quiz questions using Groq's LLM API for a single topic
+    """
+
+    prompt = f"""Generate a multiple choice quiz for the following topic: {topic}. 
+    Create questions that cover the topic with 4 options each and one correct answer make sure there are enough questions.
+    The quiz should have more than 8 questions.
+    The question should test the in depth knowledge of the topic and should be representative of real world scenarios.
+    Return the response in the following JSON format:
+    {{
+        "title": "Quiz title",
+        "questions": [
+            {{
+                "id": 1,
+                "question": "Question text",
+                "options": ["option1", "option2", "option3", "option4"],
+                "correctAnswer": "correct option",
+                "points": 10,
+                "topic":"topic"
+            }}
+        ]
+    }}
+    Make sure the response is a valid JSON string."""
+
+    data = groq_calling_function(prompt)
+
+    return data
+
+def generate_assignment_questions(subjects):
+    """
+    Generate assignment questions using Groq's LLM API
+    """
+
+    subject_text = "\n\n".join(
+    f"Subject: {subject['subject_name']}\nTopics: {', '.join(subject['topics'])}"
+    for subject in subjects
+    )
+
+    prompt = f"""Generate a multiple choice quiz for the following subjects: \n\n{subject_text}. 
+    Create questions that cover the topics with 4 options each and one correct answer make sure there are enough questions for each topic.
+    The quiz should have more than 15 questions and each topic should be represented with different levels of questions (e.g., easy, medium, hard) from a proffessional point of view.
+    Return the response in the following JSON format:
+    {{
+        "title": "Quiz title",
+        "questions": [
+            {{
+                "id": 1,
+                "question": "Question text",
+                "options": ["option1", "option2", "option3", "option4"],
+                "correctAnswer": "correct option",
+                "points": 10,
+                "topic":"topic"
+            }}
+        ]
+    }}
+    Make sure the response is a valid JSON string."""
+
+    data = groq_calling_function(prompt)
+
+    return data
 
 
 learning_paths_json_structure = """ 
@@ -88,6 +122,7 @@ learning_paths_json_structure = """
         {
             "subject_name": "<subject_name>",
             "is_completed": "false",
+            "is_started": "false",
             "estimated_hours": '<estimated_hours>',
             "assessment": {
                 "threshold": '<threshold>',
@@ -99,10 +134,10 @@ learning_paths_json_structure = """
                     "topic_name": "<topic_name>",
                     "is_completed": "false"
                 }
-            ]
+                ]
+            "official_docs": ["<official_documentation_link>"]
         }
     ],
-    "official_docs": "<official_documentation_link>"
 }
 """
 
@@ -112,9 +147,6 @@ def generate_learning_path(topics: List[str], scores: Dict[str, int]) -> Dict[st
     For each topic, the generated learning path will include an estimated number of study hours,
     an assessment configuration, and a link to official documentation.
     """
-    GROQ_API_KEY = os.getenv('GROQ_API_KEY')
-    if not GROQ_API_KEY:
-        raise ValueError("GROQ_API_KEY environment variable is not set")
     
     # Map each topic to its initial score for context
     topics_scores = " ".join([f"{topic}: {scores.get(topic, 'N/A')}" for topic in topics])
@@ -130,45 +162,6 @@ Return the response in the following JSON format:
 {learning_paths_json_structure}
 Make sure the response is a valid JSON string."""
 
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {GROQ_API_KEY}"
-    }
+    data = groq_calling_function(prompt)
 
-    # GROQ API endpoint
-    url = "https://api.groq.com/v1/completions"
-    
-    # Request body
-    data = {
-        "model": "llama-3.3-70b-versatile",
-        "messages": [{
-            "role": "user",
-            "content": prompt
-        }]
-    }
-    
-    try:
-        response = requests.post(
-            "https://api.groq.com/openai/v1/chat/completions",
-            headers=headers,
-            json=data
-        )
-        response.raise_for_status()
-        
-        generated_text = response.json()['choices'][0]['message']['content']
-        
-        # Extract the JSON substring from the response
-        start = generated_text.find('{')
-        end = generated_text.rfind('}') + 1
-        json_str = generated_text[start:end]
-        
-        learning_path_data = json.loads(json_str)
-        return learning_path_data
-            
-    except requests.exceptions.RequestException as e:
-        raise Exception(f"Error calling Groq API: {str(e)}")
-    except json.JSONDecodeError as e:
-        raise Exception(f"Error parsing LLM response as JSON: {str(e)}")
-    except Exception as e:
-        raise Exception(f"Unexpected error: {str(e)}")
-
+    return data

@@ -187,3 +187,31 @@ export const submitSkillAssessment = async (projectId, userId, answers) => {
     throw error;
   }
 };
+
+/**
+ * Get quiz for a specific topic name
+ * @param {string} topicName - The name of the topic
+ * @returns {Promise} Promise resolving to quiz data for the topic
+ */
+export const getQuizByTopicName = async (topicName) => {
+  try {
+    const url = encodeURI(`${baseURL}/api/skill-assessment/topic-quiz/${topicName}`)
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    // Make a real API call to the server endpoint
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    return response.json();
+  } catch (error) {
+    console.error('Error fetching topic quiz:', error);
+    throw error;
+  }
+};

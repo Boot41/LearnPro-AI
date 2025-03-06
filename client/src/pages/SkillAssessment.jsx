@@ -10,16 +10,17 @@ const SkillAssessment = () => {
   const navigate = useNavigate();
   const { skillAssessment, error: contextError } = useLearningPath();
   const [error, setError] = useState('');
-  
+  const {fetchLearningPath}  = useLearningPath()
   if (!skillAssessment && !contextError) {
     navigate('/dashboard');
     return null;
   }
-  
+
   const handleQuizCompletion = async (results) => {
     try {
       console.log(results)
       await submitSkillAssessment(skillAssessment.project_id, user.id, results);
+      await fetchLearningPath();
       navigate('/dashboard');
     } catch (err) {
       console.error('Failed to submit skill assessment:', err);

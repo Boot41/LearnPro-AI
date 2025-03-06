@@ -6,8 +6,26 @@ import models
 import schemas
 import auth
 from database import get_db
+from utils.llm_utils import generate_toic_quiz
 
 router = APIRouter(tags=["skill assessments"])
+
+@router.post("/api/skill-assessment/topic-quiz/{topic}")
+def get_topic_quiz(
+    topic: str,
+    current_user: models.User = Depends(auth.get_current_active_user),
+):
+    """Generate a quiz for a specific topic"""
+    try:
+        quiz_data = generate_toic_quiz(topic)
+        return quiz_data
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error generating quiz: {str(e)}"
+        )
+
+
 
 @router.get("/api/skill-assessment/quiz")
 def get_skill_assessment_quiz(
