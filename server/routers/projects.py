@@ -79,3 +79,39 @@ def get_project(
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
     return project
+
+@router.get("/completion/stats", response_model=List[schemas.ProjectCompletionStats])
+def get_project_completion_stats(
+    current_user: models.User = Depends(auth.get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Get completion statistics for all projects"""
+    # Get all projects
+    projects = db.query(models.Project).all()
+    result = []
+    
+    for project in projects:
+        # Get all learning paths for this project
+        learning_paths = db.query(models.LearningPath).filter(
+            models.LearningPath.project_id == project.id
+        ).all()
+        
+        # Calculate completion rate for this project
+        if learning_paths:
+            total_completion = 0
+            for path in learning_paths:
+                if path.total_topics > 0:
+                    completion_rate = (path.completed_topics / path.total_topics) * 100
+                    total_completion += completion_rate
+            
+            avg_completion = total_completion / len(learning_paths) if learning_paths else 0
+        else:
+            avg_completion = 0
+        
+        result.append({
+            "id": project.id,
+            "name": project.name,
+            "completionRate": round(avg_completion, 1)
+        })
+    
+    return result

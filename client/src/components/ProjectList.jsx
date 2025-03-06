@@ -33,7 +33,7 @@ const ProjectList = ({ onAddProject, projects, loading,error }) => {
         <h2 className="text-lg font-semibold text-gray-900">Projects</h2>
         <button 
           onClick={onAddProject}
-          className="flex items-center text-sm px-3 py-1.5 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+          className="flex items-center justify-center text-sm px-3 py-1.5 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 w-42"
         >
           <PlusCircle className="h-4 w-4 mr-1" />
           Add Project
@@ -52,9 +52,6 @@ const ProjectList = ({ onAddProject, projects, loading,error }) => {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Subjects
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -70,9 +67,6 @@ const ProjectList = ({ onAddProject, projects, loading,error }) => {
                   <div className="text-sm text-gray-500">
                     {project.subjects?.map(subject => subject.name).join(', ')}
                   </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  <button className="text-indigo-600 hover:text-indigo-900">View Details</button>
                 </td>
               </tr>
             ))}

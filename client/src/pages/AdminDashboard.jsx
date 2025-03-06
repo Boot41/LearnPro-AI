@@ -6,7 +6,7 @@ import ProjectList from '../components/ProjectList';
 import AddProjectModal from '../components/AddProjectModal';
 import AddEmployeeModal from '../components/AddEmployeeModal';
 import { getEmployees, addEmployee, assignProjectToEmployee } from '../services/employeeService';
-import { getProjects } from '../services/projectService';
+import { getProjects, getProjectCompletionStats } from '../services/projectService';
 
 const chartData = [
   { name: 'Web Dev', completion: 52.5 },
@@ -20,7 +20,9 @@ const AdminDashboard = () => {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [projectData,setProjectData] = useState([])
+  const [projectData, setProjectData] = useState([]);
+  const [projectStats, setProjectStats] = useState([]);
+  const [averageCompletion, setAverageCompletion] = useState(0);
 
 
   useEffect(() => {
@@ -34,19 +36,37 @@ const AdminDashboard = () => {
         setLoading(false);
       }
     };
+    
     const fetchProjects = async () => {
-    try {
-      const data = await getProjects();
-      setProjectData(data);
-      setLoading(false);
-    } catch (err) {
-      setError(err.message || 'Failed to fetch projects');
-      setLoading(false);
-    }
-  };
+      try {
+        const data = await getProjects();
+        setProjectData(data);
+        setLoading(false);
+      } catch (err) {
+        setError(err.message || 'Failed to fetch projects');
+        setLoading(false);
+      }
+    };
+    
+    const fetchProjectStats = async () => {
+      try {
+        const stats = await getProjectCompletionStats();
+        setProjectStats(stats);
+        
+        // Calculate average completion across all projects
+        if (stats.length > 0) {
+          const totalCompletion = stats.reduce((sum, project) => sum + project.completionRate, 0);
+          setAverageCompletion(Math.round(totalCompletion / stats.length));
+        }
+      } catch (err) {
+        console.error('Failed to fetch project stats:', err);
+        // Don't set error state here to avoid blocking the entire dashboard
+      }
+    };
 
     fetchEmployees();
     fetchProjects();
+    fetchProjectStats();
   }, []);
 
   useEffect(() => {
@@ -106,10 +126,10 @@ const AdminDashboard = () => {
       <StatsOverview 
         employeeCount={employees.length}
         projectCount={projectData.length}
-        averageCompletion={Math.round(projectData.reduce((acc, curr) => acc + curr.completionRate, 0) / projectData.length)}
+        averageCompletion={averageCompletion}
       />
 
-      <ProjectChart data={projectData} />
+      <ProjectChart data={projectStats.length > 0 ? projectStats : projectData} />
 
       <EmployeeList 
         employees={employees} 

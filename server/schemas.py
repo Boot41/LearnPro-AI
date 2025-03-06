@@ -135,3 +135,15 @@ class AssignProject(BaseModel):
                 "project_id": 1
             }
         }
+
+class LearningPathUpdate(BaseModel):
+    """Schema for updating a learning path"""
+    learning_path: str  # JSON string
+    total_topics: Optional[int] = None
+    completed_topics: Optional[int] = None
+
+class ProjectCompletionStats(BaseModel):
+    """Schema for project completion statistics"""
+    id: int
+    name: str
+    completionRate: float

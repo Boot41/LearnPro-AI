@@ -1,5 +1,5 @@
 import { sample_data } from '../../sample_data';
-import { get, post } from './apiService';
+import { get, post, put } from './apiService';
 
 // Helper function to transform the sample data into the required format for components
 let baseURL = import.meta.env.VITE_BASE_URL;
@@ -192,6 +192,23 @@ export const createLearningPath = async (learningPathData) => {
     return response;
   } catch (error) {
     console.error('Error creating learning path:', error);
+    throw error;
+  }
+};
+
+/**
+ * Update the learning path for the current user
+ * @param {Object} learningPathData - Updated learning path data
+ * @returns {Promise} Promise resolving to the updated learning path
+ */
+export const updateLearningPath = async (learningPathData) => {
+  try {
+    // Use the put function from apiService instead of direct fetch
+    // This will properly handle authentication headers
+    const response = await put('/api/learning_paths/update', learningPathData);
+    return response;
+  } catch (error) {
+    console.error('Error updating learning path:', error);
     throw error;
   }
 };

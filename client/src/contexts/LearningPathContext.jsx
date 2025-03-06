@@ -42,6 +42,7 @@ export const LearningPathProvider = ({ children }) => {
         isLoading, 
         error, 
         fetchLearningPath,
+        setLearningPath,
         clearLearningPath,
         setSkillAssessment
       }}

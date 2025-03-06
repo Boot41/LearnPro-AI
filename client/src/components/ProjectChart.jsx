@@ -13,7 +13,7 @@ const ProjectChart = ({ data }) => (
           <XAxis dataKey="name" />
           <YAxis domain={[0, 100]} />
           <Tooltip />
-          <Bar dataKey="completion" fill="#6366F1" />
+          <Bar dataKey="completionRate" fill="#6366F1" />
         </BarChart>
       </ResponsiveContainer>
     </div>

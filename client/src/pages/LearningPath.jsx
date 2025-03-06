@@ -11,27 +11,40 @@ const LearningPath = () => {
   const { setQuizInfo } = useQuiz();
   const [isLoading, setIsLoading] = useState(false);
   const [loadingSubjectId, setLoadingSubjectId] = useState(null);
-
+  const [firstIncompleteTopic, setFirstIncompleteTopic] = useState(null);
   const handleStartQuiz = (topicId) => {
     navigate(`/quiz/${topicId}`);
   };
   
-  const handleContinueLearning = async (subjectId) => {
+  const handleContinueLearning = async () => {
     // Find the subject
-    const subject = path.subjects.find(s => s.id === subjectId);
-    if (!subject) return;
-
-    // Find first incomplete topic
-    const firstIncompleteTopic = subject.topics.find(topic => topic.is_completed !== 'completed');
-    if (!firstIncompleteTopic) return;
+    console.log(path)
+    function findFirstIncompleteTopic(data) {
+    for (const subject of data.subjects) {
+        for (const topic of subject.topics) {
+            if (!topic.is_completed) {
+                topic.subject = {subject_name: subject.subject_name, assessment: subject.assessment};
+                return topic;
+            }
+        }
+    }
+    return null; // Return null if no incomplete topic is found
+    }
+    const incomplete_topic = findFirstIncompleteTopic(path); 
+    setFirstIncompleteTopic(incomplete_topic);
+    console.log(incomplete_topic)
+    if (!incomplete_topic) return;
 
     try {
       setIsLoading(true);
-      setLoadingSubjectId(subjectId);
-      const quizData = await getQuizByTopicName(firstIncompleteTopic.topic_name);
-      // Store quiz data in context and navigate to quiz page
+      setLoadingSubjectId(incomplete_topic.id);
+      const quizData = await getQuizByTopicName(incomplete_topic.topic_name);
+      console.log(incomplete_topic)
+      quizData.subject = incomplete_topic.subject
+      quizData.topic = incomplete_topic.topic_name
       console.log(quizData)
-      setQuizInfo(quizData, firstIncompleteTopic.id);
+
+      setQuizInfo(quizData, incomplete_topic.id);
       navigate('/quiz');
     } catch (error) {
       console.error('Error fetching quiz:', error);
@@ -86,6 +99,19 @@ const LearningPath = () => {
             <h2 className="text-lg font-semibold text-gray-900">Learning Timeline</h2>
             <p className="text-sm text-gray-500 mt-1">Estimated {path.total_estimated_hours} hours to complete</p>
           </div>
+
+          <button
+            onClick={() => handleContinueLearning()}
+            disabled={isLoading}
+            className={`px-4 py-2 w-36 text-sm font-medium text-white ${isLoading && loadingSubjectId === firstIncompleteTopic.id ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'} rounded-md flex items-center justify-center`}
+          >
+            {isLoading && loadingSubjectId === firstIncompleteTopic.id ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Loading...
+              </>
+            ) : 'Take Next Quiz'}
+          </button>
           {/* <button 
             onClick={() => setShowCalendarModal(true)}
             className="flex items-center text-sm px-3 py-1.5 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
@@ -106,48 +132,50 @@ const LearningPath = () => {
                 {/* Timeline marker */}
                 <div className={`absolute left-6 top-8 w-4 h-4 rounded-full border-2 ${
                   topic.is_completed ? 'bg-green-500 border-green-500' :
-                  topic.is_completed === 'in-progress' ? 'bg-white border-indigo-500' :
+                  topic.is_started ? 'bg-white border-indigo-500' :
                   'bg-white border-gray-300'
                 }`}></div>
                 
                 {/* Topic content */}
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between">
+                  <div className='flex justify-between w-full'>
                   <div>
                     <div className="flex items-center">
                       <h3 className="text-md font-medium text-gray-900">{topic.subject_name}</h3>
                       <div className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
-                        topic.status === 'completed' ? 'bg-green-100 text-green-800' :
-                        topic.status === 'in-progress' ? 'bg-blue-100 text-blue-800' :
+                        topic.is_completed ? 'bg-green-100 text-green-800' :
+                        topic.is_started ? 'bg-blue-100 text-blue-800' :
                         'bg-gray-100 text-gray-800'
                       }`}>
-                        {topic.is_completed === 'completed' ? 'Completed' : 
-                         topic.is_completed === 'in-progress' ? 'In Progress' : 
+                        {topic.is_completed ? 'Completed' : 
+                         topic.is_started ? 'In Progress' : 
                          'Not Started'}
                       </div>
                     </div>
                     
                     <div className="flex items-center mt-1 text-sm text-gray-500">
                       <Clock className="h-4 w-4 mr-1" />
-                      <span>Estimated {topic.estimatedHours} hours</span>
+                      <span>Estimated {topic.estimated_hours} hours</span>
                     </div>
                     
                     {/* Subtopics */}
                     <div className="mt-3 space-y-1">
                       {topic.topics.map((subtopic, idx) => (
                         <div key={idx} className="flex items-center text-sm">
-                          {subtopic.is_completed === 'completed' ? (
+                          {subtopic.is_completed ? (
                             <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
                           ) : (
                             <div className="h-4 w-4 border border-gray-300 rounded-full mr-2"></div>
                           )}
-                          <span className={subtopic.is_completed === 'completed' ? 'text-gray-500 line-through' : 'text-gray-700'}>
+                          <span className={subtopic.is_completed ? 'text-gray-500 line-through' : 'text-gray-700'}>
                             {subtopic.topic_name}
                           </span>
                         </div>
                       ))}
                     </div>
-                    
+                    </div>
                     {/* Resources */}
+                    <div>
                     <div className="mt-4">
                       <p className="text-sm font-medium text-gray-700">Official Documentation:</p>
                       <div className="mt-1 space-y-1">
@@ -165,37 +193,18 @@ const LearningPath = () => {
                       </div>
                     </div>
                   </div>
+                  </div>
                   
                   <div className="mt-4 md:mt-0 flex flex-col space-y-2">
                     {!topic.is_completed && (
                       <>
-                        <button
-                          onClick={() => handleContinueLearning(topic.id)}
-                          disabled={isLoading}
-                          className={`px-4 py-2 text-sm font-medium text-white ${isLoading && loadingSubjectId === topic.id ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'} rounded-md flex items-center justify-center`}
-                        >
-                          {isLoading && loadingSubjectId === topic.id ? (
-                            <>
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                              Loading...
-                            </>
-                          ) : 'Take Next Quiz'}
-                        </button>
-                        <button
+                        {/* <button
                           onClick={() => handleTakeAssessment(topic.id)}
                           className="px-4 py-2 text-sm font-medium text-indigo-600 bg-indigo-100 rounded-md hover:bg-indigo-200"
                         >
                           Take Assessment
-                        </button>
+                        </button> */}
                       </>
-                    )}
-                    {topic.is_completed && (
-                      <button
-                        onClick={() => handleTakeAssessment(topic.id)}
-                        className="px-4 py-2 text-sm font-medium text-green-600 bg-green-100 rounded-md hover:bg-green-200"
-                      >
-                        Review
-                      </button>
                     )}
                   </div>
                 </div>
@@ -204,106 +213,6 @@ const LearningPath = () => {
           </div>
         </div>
       </div>
-      
-      {/* Calendar schedule */}
-      {/* {showCalendarModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Schedule Learning Sessions</h3>
-              <button onClick={() => setShowCalendarModal(false)}>
-                <X className="h-5 w-5 text-gray-500" />
-              </button>
-            </div>
-            
-            <div className="mb-6">
-              <p className="text-gray-700">
-                LearnPro AI will schedule dedicated learning time on your calendar. 
-                You can customize your preferences below.
-              </p>
-            </div>
-            
-            <div className="space-y-4 mb-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Preferred Learning Days
-                </label>
-                <div className="grid grid-cols-7 gap-2">
-                  {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => (
-                    <button
-                      key={index}
-                      className={`py-2 text-sm font-medium rounded-md ${
-                        index < 5 ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-500'
-                      }`}
-                    >
-                      {day}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Daily Learning Time
-                </label>
-                <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                  <option value="1">1 hour per day</option>
-                  <option value="2" selected>2 hours per day</option>
-                  <option value="3">3 hours per day</option>
-                  <option value="4">4 hours per day</option>
-                </select>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Preferred Time of Day
-                </label>
-                <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                  <option value="morning">Morning (9:00 AM - 12:00 PM)</option>
-                  <option value="afternoon" selected>Afternoon (1:00 PM - 5:00 PM)</option>
-                  <option value="evening">Evening (6:00 PM - 9:00 PM)</option>
-                </select>
-              </div>
-            </div>
-            
-            <div className="border-t border-gray-200 pt-4">
-              <h4 className="text-sm font-medium text-gray-700 mb-2">Upcoming Schedule Preview</h4>
-              <div className="space-y-3 max-h-60 overflow-y-auto">
-                {learningPathData.schedule.map((day, index) => (
-                  <div key={index} className="flex items-start">
-                    <div className="min-w-[100px] text-sm font-medium text-gray-700">
-                      {format(day.date, 'EEE, MMM d')}
-                    </div>
-                    <div className="flex-1 bg-indigo-50 rounded-md p-2">
-                      <div className="text-sm font-medium text-indigo-700">
-                        {day.topics.join(', ')}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {day.hours} hours • 1:00 PM - 3:00 PM
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            <div className="flex justify-end mt-6">
-              <button
-                onClick={() => setShowCalendarModal(false)}
-                className="mr-3 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
-              >
-                Cancel
-              </button>
-              <button
-                className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 flex items-center"
-              >
-                <Calendar className="h-4 w-4 mr-2" />
-                Schedule on Calendar
-              </button>
-            </div>
-          </div>
-        </div>
-      )} */}
     </div>
   );
 };

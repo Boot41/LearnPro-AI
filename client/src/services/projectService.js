@@ -53,3 +53,17 @@ export const getProject = async (projectId) => {
     throw error;
   }
 };
+
+/**
+ * Get project completion statistics
+ * @returns {Promise} Promise resolving to project completion statistics
+ */
+export const getProjectCompletionStats = async () => {
+  try {
+    const response = await get('/api/projects/completion/stats');
+    return response;
+  } catch (error) {
+    console.error('Error fetching project completion stats:', error);
+    throw error;
+  }
+};

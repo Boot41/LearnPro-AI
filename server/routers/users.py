@@ -32,15 +32,41 @@ def list_employees(
     # Prepare employee list with progress data
     employee_list = []
     for employee in employees:
-        # Here we'll add placeholder progress data
-        # TODO: Implement actual progress tracking
+        # Calculate actual progress based on learning paths
+        progress = 0.0
+        assigned_projects = []
+        last_activity = None
+        
+        # Get the employee's assigned project
+        if employee.assigned_project_id:
+            project = db.query(models.Project).filter(models.Project.id == employee.assigned_project_id).first()
+            if project:
+                # Get the employee's learning path for this project
+                learning_path = db.query(models.LearningPath).filter(
+                    models.LearningPath.user_id == employee.id,
+                    models.LearningPath.project_id == project.id
+                ).first()
+                
+                if learning_path:
+                    # Calculate progress percentage
+                    if learning_path.total_topics > 0:
+                        progress = (learning_path.completed_topics / learning_path.total_topics) * 100
+                    last_activity = learning_path.updated_at
+                
+                assigned_projects.append({
+                    "id": project.id,
+                    "name": project.name,
+                    "progress": progress,
+                    "last_activity": last_activity
+                })
+        
         employee_data = schemas.EmployeeWithProgress(
             id=employee.id,
             email=employee.email,
             name=employee.username,  # Using username as name for now
-            progress=0.0,  # Placeholder progress
-            assigned_projects=[],  # Placeholder for assigned projects
-            last_activity=None  # Placeholder for last activity
+            progress=progress,
+            assigned_projects=assigned_projects,
+            last_activity=last_activity
         )
         employee_list.append(employee_data)
     

@@ -107,3 +107,45 @@ def get_user_learning_paths(
         models.LearningPath.user_id == user_id
     ).all()
     return learning_paths
+
+@router.put("/api/learning_paths/update", response_model=schemas.LearningPath)
+def update_learning_path(
+    learning_path_update: schemas.LearningPathUpdate,
+    current_user: models.User = Depends(auth.get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Update the learning path for the currently logged-in user"""
+    if current_user.user_type != models.UserType.EMPLOYEE:
+        raise HTTPException(
+            status_code=403,
+            detail="Only employees can update their learning paths"
+        )
+    
+    # Get the most recent learning path for the user
+    learning_path = db.query(models.LearningPath).filter(
+        models.LearningPath.user_id == current_user.id
+    ).order_by(models.LearningPath.created_at.desc()).first()
+    
+    if not learning_path:
+        raise HTTPException(
+            status_code=404,
+            detail="No learning path found to update. Please create a learning path first."
+        )
+    
+    # Update the learning path with the new data
+    learning_path.learning_path = learning_path_update.learning_path
+    
+    # Update total_topics and completed_topics if provided
+    if learning_path_update.total_topics is not None:
+        learning_path.total_topics = learning_path_update.total_topics
+    
+    if learning_path_update.completed_topics is not None:
+        learning_path.completed_topics = learning_path_update.completed_topics
+    
+    # Update the timestamp
+    learning_path.updated_at = datetime.utcnow()
+    
+    db.commit()
+    db.refresh(learning_path)
+    
+    return learning_path

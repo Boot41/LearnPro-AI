@@ -139,9 +139,11 @@ const Quiz = ({ quizData, onComplete, isSkillAssessment = false }) => {
   };
   
   const handleFinishQuiz = () => {
-    if (isSkillAssessment && onComplete) {
+    console.log(userAnswers)
+    if (onComplete) {
       // Calculate topic-wise scores before submitting
       const topicScores = calculateTopicScores(currentQuizData.questions, userAnswers);
+      console.log(userAnswers,topicScores)
       onComplete({ answers: userAnswers, topicScores });
     } else {
       navigate('/learning-path');

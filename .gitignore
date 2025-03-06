@@ -6,3 +6,4 @@ db.sqlite3
 server2
 static
 etc
+.terraform

@@ -51,6 +51,8 @@ def groq_calling_function(prompt):
     except Exception as e:
         raise Exception(f"Unexpected error: {str(e)}")
 
+# The question should test the in depth knowledge of the topic and should be representative of real world scenarios.
+
 def generate_toic_quiz(topic):
     """
     Generate quiz questions using Groq's LLM API for a single topic
@@ -58,8 +60,8 @@ def generate_toic_quiz(topic):
 
     prompt = f"""Generate a multiple choice quiz for the following topic: {topic}. 
     Create questions that cover the topic with 4 options each and one correct answer make sure there are enough questions.
-    The quiz should have more than 8 questions.
-    The question should test the in depth knowledge of the topic and should be representative of real world scenarios.
+    The questions should be super easy.
+    The quiz should have only three questions.
     Return the response in the following JSON format:
     {{
         "title": "Quiz title",
@@ -75,7 +77,6 @@ def generate_toic_quiz(topic):
         ]
     }}
     Make sure the response is a valid JSON string."""
-
     data = groq_calling_function(prompt)
 
     return data
