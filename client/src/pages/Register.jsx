@@ -30,7 +30,7 @@ const Register = () => {
       navigate('/login');
     } catch (err) {
       setError('Registration failed. Please try again.');
-      stIsLoading(false);
+      setIsLoading(false);
     } finally {
       setIsLoading(false);
     }

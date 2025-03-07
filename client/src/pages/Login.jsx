@@ -21,7 +21,7 @@ const Login = () => {
     if (userData.role === 'employee') {
       try{
         await fetchLearningPath();
-        navigate('/learnig-path');
+        navigate('/learning-path');
       } 
       catch (err){
         if (err.message?.includes('API request failed with status 404')) {
