@@ -1,0 +1,17 @@
+[run]
+source = ../
+omit =
+    */tests/*
+    */venv/*
+    */site-packages/*
+    */__pycache__/*
+    */migrations/*
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    pass
+    raise ImportError
