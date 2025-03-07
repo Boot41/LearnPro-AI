@@ -43,7 +43,7 @@ const EmployeeList = ({ employees, onAddEmployee }) => {
                 <div className="text-sm text-gray-500">{employee.email}</div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-500">{employee.assigned_projects[0].name}</div>
+                <div className="text-sm text-gray-500">{employee.assigned_projects[0]?.name}</div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap flex space-x-2 justify-center items-center">
                 <div className="w-full bg-gray-200 rounded-full h-2.5">

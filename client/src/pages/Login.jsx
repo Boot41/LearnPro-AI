@@ -21,7 +21,7 @@ const Login = () => {
     if (userData.role === 'employee') {
       try{
         await fetchLearningPath();
-        navigate('/dashboard');
+        navigate('/learnig-path');
       } 
       catch (err){
         if (err.message?.includes('API request failed with status 404')) {
@@ -32,7 +32,8 @@ const Login = () => {
           } 
           catch(quizError){
             console.error('Error fetching skill assessment:', quizError);
-            setError('Failed to fetch both learning path and skill assessment');
+            setError('Contact admin to get a project assigned to you');
+            setIsLoading(false)
           }
         }
       } 
