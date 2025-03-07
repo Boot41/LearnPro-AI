@@ -73,10 +73,10 @@ app.include_router(projects.router)
 app.include_router(learning_paths.router)
 app.include_router(skill_assessments.router)
 
-# @app.get("/", response_class=HTMLResponse)
-# async def serve_home():
-#     with open("static/index.html", "r") as f:
-#         return f.read()
+@app.get("/", response_class=HTMLResponse)
+async def serve_home():
+    with open("static/index.html", "r") as f:
+        return f.read()
 
 @app.get("/test")
 def read_root():

@@ -51,7 +51,6 @@ def groq_calling_function(prompt):
     except Exception as e:
         raise Exception(f"Unexpected error: {str(e)}")
 
-# The question should test the in depth knowledge of the topic and should be representative of real world scenarios.
 
 def generate_toic_quiz(topic):
     """
@@ -60,8 +59,8 @@ def generate_toic_quiz(topic):
 
     prompt = f"""Generate a multiple choice quiz for the following topic: {topic}. 
     Create questions that cover the topic with 4 options each and one correct answer make sure there are enough questions.
-    The questions should be super easy.
-    The quiz should have only three questions.
+    The question should test the in depth knowledge of the topic and should be representative of real world scenarios.
+    The quiz should have at least 10 questions.
     Return the response in the following JSON format:
     {{
         "title": "Quiz title",
