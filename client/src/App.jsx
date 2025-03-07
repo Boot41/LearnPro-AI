@@ -17,6 +17,9 @@ import QuizMCQ from "./pages/QuizMCQ";
 import LearningPath from "./pages/LearningPath";
 import Assessment from "./pages/Assessment";
 import SkillAssessment from "./pages/SkillAssessment";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
+import FAQ from "./pages/FAQ";
 import NotFound from "./pages/NotFound";
 import Layout from "./components/Layout";
 
@@ -109,6 +112,32 @@ function App() {
               element={
                 <ProtectedRoute requiredRole="employee">
                   <SkillAssessment />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Information Pages - Accessible to any authenticated user */}
+            <Route
+              path="/about"
+              element={
+                <ProtectedRoute>
+                  <About />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/contact"
+              element={
+                <ProtectedRoute>
+                  <Contact />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/faq"
+              element={
+                <ProtectedRoute>
+                  <FAQ />
                 </ProtectedRoute>
               }
             />

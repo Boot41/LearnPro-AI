@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Outlet, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { LogOut, Menu, X, BookOpen, Calendar, User, BarChart } from 'lucide-react';
+import { LogOut, Menu, X, BookOpen, User, BarChart, Info, Mail, HelpCircle } from 'lucide-react';
 
 const Layout = () => {
   const { user, logout } = useAuth();
@@ -46,16 +46,33 @@ const Layout = () => {
                   <BarChart className="h-5 w-5" />
                   <span>Dashboard</span>
                 </Link>
+                <div className="mt-8 pt-4 border-t border-indigo-800">
+                  <p className="px-4 text-sm font-medium text-indigo-200 mb-2">Information</p>
+                  <Link 
+                    to="/about" 
+                    className="flex items-center space-x-2 py-2 px-4 rounded hover:bg-indigo-800"
+                  >
+                    <Info className="h-5 w-5" />
+                    <span>About Us</span>
+                  </Link>
+                  <Link 
+                    to="/contact" 
+                    className="flex items-center space-x-2 py-2 px-4 rounded hover:bg-indigo-800"
+                  >
+                    <Mail className="h-5 w-5" />
+                    <span>Contact</span>
+                  </Link>
+                  <Link 
+                    to="/faq" 
+                    className="flex items-center space-x-2 py-2 px-4 rounded hover:bg-indigo-800"
+                  >
+                    <HelpCircle className="h-5 w-5" />
+                    <span>FAQ</span>
+                  </Link>
+                </div>
               </>
             ) : (
               <>
-                <Link 
-                  to="/dashboard" 
-                  className="flex items-center space-x-2 py-2 px-4 rounded hover:bg-indigo-800"
-                >
-                  <BarChart className="h-5 w-5" />
-                  <span>Dashboard</span>
-                </Link>
                 <Link 
                   to="/learning-path" 
                   className="flex items-center space-x-2 py-2 px-4 rounded hover:bg-indigo-800"
@@ -63,13 +80,30 @@ const Layout = () => {
                   <BookOpen className="h-5 w-5" />
                   <span>Learning Path</span>
                 </Link>
-                <Link 
-                  to="/calendar" 
-                  className="flex items-center space-x-2 py-2 px-4 rounded hover:bg-indigo-800"
-                >
-                  <Calendar className="h-5 w-5" />
-                  <span>Calendar</span>
-                </Link>
+                <div className="mt-8 pt-4 border-t border-indigo-800">
+                  <p className="px-4 text-sm font-medium text-indigo-200 mb-2">Information</p>
+                  <Link 
+                    to="/about" 
+                    className="flex items-center space-x-2 py-2 px-4 rounded hover:bg-indigo-800"
+                  >
+                    <Info className="h-5 w-5" />
+                    <span>About Us</span>
+                  </Link>
+                  <Link 
+                    to="/contact" 
+                    className="flex items-center space-x-2 py-2 px-4 rounded hover:bg-indigo-800"
+                  >
+                    <Mail className="h-5 w-5" />
+                    <span>Contact</span>
+                  </Link>
+                  <Link 
+                    to="/faq" 
+                    className="flex items-center space-x-2 py-2 px-4 rounded hover:bg-indigo-800"
+                  >
+                    <HelpCircle className="h-5 w-5" />
+                    <span>FAQ</span>
+                  </Link>
+                </div>
               </>
             )}
           </div>
@@ -107,7 +141,7 @@ const Layout = () => {
           </button>
           <div className="ml-4 md:ml-0">
             <h1 className="text-xl font-semibold text-gray-800">
-              {user.role === 'admin' ? 'Admin Dashboard' : 'Learning Dashboard'}
+              {user.role === 'admin' ? 'Admin Dashboard' : 'Learning Portal'}
             </h1>
           </div>
         </header>
