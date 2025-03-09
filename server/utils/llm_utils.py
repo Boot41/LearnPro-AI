@@ -57,10 +57,13 @@ def generate_toic_quiz(topic):
     Generate quiz questions using Groq's LLM API for a single topic
     """
 
+    # there should be a maximum of 3 three questions in this quiz as i am testing my system at this point.
+
     prompt = f"""Generate a multiple choice quiz for the following topic: {topic}. 
-    Create questions that cover the topic with 4 options each and one correct answer make sure there are enough questions.
+    Create questions that cover the topic with 4 options each and one correct answer.
     The question should test the in depth knowledge of the topic and should be representative of real world scenarios.
     The quiz should have at least 10 questions.
+    Make sure each question has only one correct option out of all four.
     Return the response in the following JSON format:
     {{
         "title": "Quiz title",
@@ -89,10 +92,10 @@ def generate_assignment_questions(subjects):
     f"Subject: {subject['subject_name']}\nTopics: {', '.join(subject['topics'])}"
     for subject in subjects
     )
-
-    prompt = f"""Generate a multiple choice quiz for the following subjects: \n\n{subject_text}. 
-    Create questions that cover the topics with 4 options each and one correct answer make sure there are enough questions for each topic.
-    The quiz should have more than 15 questions and each topic should be represented with different levels of questions (e.g., easy, medium, hard) from a proffessional point of view.
+    prompt = f"""
+    Create questions that cover the topics with four options each and one correct answer make sure there are enough questions for each topic.
+    The quiz should have more than ten questions and each topic should be represented with different levels of questions (e.g., easy, medium, hard) from a proffessional point of view.
+    Generate a multiple choice quiz for the following subjects: \n\n{subject_text}. 
     Return the response in the following JSON format:
     {{
         "title": "Quiz title",

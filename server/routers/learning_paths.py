@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Dict
 import json
 from datetime import datetime
 
@@ -149,3 +149,58 @@ def update_learning_path(
     db.refresh(learning_path)
     
     return learning_path
+
+
+@router.delete("/api/users/{employee_id}/learning_path", status_code=status.HTTP_204_NO_CONTENT)
+def delete_learning_path_and_unassign_project(
+    employee_id: int,
+    current_user: models.User = Depends(auth.get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Delete a learning path and unassign the project from the employee
+    
+    This endpoint is only accessible by admin users.
+    It will:
+    1. Delete the employee's learning path
+    2. Set the assigned_project_id to null for the employee
+    """
+    # Check if current user is admin
+    if current_user.user_type != models.UserType.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admin users can delete learning paths"
+        )
+    
+    # Get the employee
+    employee = db.query(models.User).filter(
+        models.User.id == employee_id,
+        models.User.user_type == models.UserType.EMPLOYEE
+    ).first()
+    
+    if not employee:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Employee with ID {employee_id} not found"
+        )
+    
+    # Get the employee's learning path
+    learning_path = db.query(models.LearningPath).filter(
+        models.LearningPath.user_id == employee_id
+    ).order_by(models.LearningPath.created_at.desc()).first()
+    
+    if not learning_path:
+        # If no learning path exists, just unassign the project
+        employee.assigned_project_id = None
+        db.commit()
+        return {"detail": "Project unassigned successfully. No learning path found to delete."}
+    
+    # Delete the learning path
+    db.delete(learning_path)
+    
+    # Unassign the project from the employee
+    employee.assigned_project_id = None
+    
+    # Commit the changes
+    db.commit()
+    
+    return {"detail": "Learning path deleted and project unassigned successfully"}

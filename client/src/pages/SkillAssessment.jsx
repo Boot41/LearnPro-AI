@@ -12,7 +12,7 @@ const SkillAssessment = () => {
   const [error, setError] = useState('');
   const {fetchLearningPath}  = useLearningPath()
   if (!skillAssessment && !contextError) {
-    navigate('/dashboard');
+    navigate('/learning-path');
     return null;
   }
 
@@ -21,7 +21,7 @@ const SkillAssessment = () => {
       console.log(results)
       await submitSkillAssessment(skillAssessment.project_id, user.id, results);
       await fetchLearningPath();
-      navigate('/dashboard');
+      navigate('/learning-path');
     } catch (err) {
       console.error('Failed to submit skill assessment:', err);
       setError('Failed to submit your answers. Please try again.');

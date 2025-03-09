@@ -1,12 +1,14 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import StatsOverview from '../components/StatsOverview';
 import ProjectChart from '../components/ProjectChart';
 import EmployeeList from '../components/EmployeeList';
 import ProjectList from '../components/ProjectList';
 import AddProjectModal from '../components/AddProjectModal';
 import AddEmployeeModal from '../components/AddEmployeeModal';
-import { getEmployees, addEmployee, assignProjectToEmployee } from '../services/employeeService';
+import { getEmployees, assignProjectToEmployee } from '../services/employeeService';
+import { createProject } from '../services/projectService';
 import { getProjects, getProjectCompletionStats } from '../services/projectService';
+import { deleteLearningPathAndUnassignProject } from '../services/employeeService';
 
 const AdminDashboard = () => {
   const [showAddEmployeeModal, setShowAddEmployeeModal] = useState(false);
@@ -75,9 +77,35 @@ const AdminDashboard = () => {
     };
   }, [showAddProjectModal, showAddEmployeeModal]);
 
-  const handleAddProject = (projectData) => {
-    console.log('New Project:', projectData);
-    setShowAddProjectModal(false);
+  const handleDeleteLearningPath = async (employeeId) => {
+    try {
+      await deleteLearningPathAndUnassignProject(employeeId);
+      const data = await getEmployees();
+      setEmployees(data);
+    } catch (error) {
+      console.error('Error deleting learning path:', error);
+      alert('Failed to delete learning path. Please try again.');
+    }
+  };
+
+  const handleAddProject = async (projectData) => {
+    try {
+      const newProject = {
+        project_name: projectData.projectName,
+        project_description: projectData.projectDescription,
+        subjects: projectData.subjects.map(subject => ({
+            subject_name: subject.subject_name,
+            topics: subject.topics.filter(topic => topic.trim() !== '')
+          }))
+        };
+        
+        await createProject(newProject);
+        const data = await getProjects(); 
+        setProjectData(data);
+
+      } catch (err) {
+        setError(err.message || 'Failed to create project');
+      }
   };
 
   const handleAddEmployee = async (employeeData) => {
@@ -93,9 +121,6 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleProjectAdded = () => {
-    setProjectRefreshKey(prev => prev + 1);
-  };
 
   if (loading) {
     return (
@@ -127,6 +152,7 @@ const AdminDashboard = () => {
 
       <EmployeeList 
         employees={employees} 
+        removeLearningPath={handleDeleteLearningPath}
         onAddEmployee={() => setShowAddEmployeeModal(true)} 
       />
 
@@ -141,7 +167,6 @@ const AdminDashboard = () => {
         show={showAddProjectModal}
         onClose={() => setShowAddProjectModal(false)}
         onSubmit={handleAddProject}
-        onProjectAdded={handleProjectAdded}
       />
 
       <AddEmployeeModal

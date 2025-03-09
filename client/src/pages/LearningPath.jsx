@@ -132,7 +132,7 @@ const LearningPath = () => {
 
           <button
             onClick={() => handleContinueLearning()}
-            disabled={isLoading}
+            disabled={isLoading || !firstIncompleteTopic}
             className={`px-4 py-2 w-36 text-sm font-medium text-white ${isLoading && loadingSubjectId === firstIncompleteTopic.id ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'} rounded-md flex items-center justify-center`}
           >
             {isLoading && loadingSubjectId === firstIncompleteTopic.id ? (

@@ -1,4 +1,4 @@
-import { get, post } from './apiService';
+import { get, post, del } from './apiService';
 
 /**
  * Get list of all employees
@@ -56,6 +56,21 @@ export const assignProjectToEmployee = async (email, projectId) => {
     return response;
   } catch (error) {
     console.error('Error assigning project:', error);
+    throw error;
+  }
+};
+
+/**
+ * Delete learning path and unassign project from an employee
+ * @param {number} employeeId - Employee's ID
+ * @returns {Promise} Promise resolving to the deletion result
+ */
+export const deleteLearningPathAndUnassignProject = async (employeeId) => {
+  try {
+    const response = await del(`/api/users/${employeeId}/learning_path`);
+    return response;
+  } catch (error) {
+    console.error('Error deleting learning path and unassigning project:', error);
     throw error;
   }
 };

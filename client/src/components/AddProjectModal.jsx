@@ -1,13 +1,28 @@
 import React, { useState } from 'react';
-import { X, Trash, PlusCircle } from 'lucide-react';
-import { createProject } from '../services/projectService';
+import { X, Trash } from 'lucide-react';
 
-const AddProjectModal = ({ show, onClose, onProjectAdded }) => {
+const AddProjectModal = ({ show, onClose, onSubmit }) => {
   const [projectName, setProjectName] = useState('');
   const [projectDescription, setProjectDescription] = useState('');
   const [subjects, setSubjects] = useState([{ subject_name: '', topics: [''] }]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  const submitHandler = async () => {
+    setLoading(true);
+    setError(null);
+    if (!projectName || !projectDescription) {
+      setError('Project name and description are required');
+      setLoading(false);
+      return;
+    }
+    await onSubmit({
+      projectName,
+      projectDescription,
+      subjects
+    });
+    setLoading(false);
+  };
 
   const handleAddSubject = () => {
     setSubjects([...subjects, { subject_name: '', topics: [''] }]);
@@ -40,39 +55,6 @@ const AddProjectModal = ({ show, onClose, onProjectAdded }) => {
     const newSubjects = [...subjects];
     newSubjects[subjectIndex].topics = newSubjects[subjectIndex].topics.filter((_, i) => i !== topicIndex);
     setSubjects(newSubjects);
-  };
-
-  const handleFormSubmit = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const projectData = {
-        project_name: projectName,
-        project_description: projectDescription,
-        subjects: subjects.map(subject => ({
-          subject_name: subject.subject_name,
-          topics: subject.topics.filter(topic => topic.trim() !== '')
-        }))
-      };
-      
-      await createProject(projectData);
-      
-      // Clear form
-      setProjectName('');
-      setProjectDescription('');
-      setSubjects([{ subject_name: '', topics: [''] }]);
-      
-      // Close modal and notify parent
-      onClose();
-      if (onProjectAdded) {
-        onProjectAdded();
-      }
-    } catch (err) {
-      setError(err.message || 'Failed to create project');
-    } finally {
-      setLoading(false);
-    }
   };
 
   if (!show) return null;
@@ -179,12 +161,24 @@ const AddProjectModal = ({ show, onClose, onProjectAdded }) => {
           >
             Cancel
           </button>
-          <button
-            onClick={handleFormSubmit}
-            className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
-          >
-            Save Project
-          </button>
+          {loading && (
+            <button
+              type="button"
+              disabled={true}
+              className="px-4 flex w-32 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md disabled:bg-indigo-400 disabled:cursor-not-allowed hover:bg-indigo-700"
+            >
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              Saving...
+            </button>
+          )}
+          {!loading && (
+            <button
+              onClick={submitHandler}
+              className="px-4 py-2 w-32 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
+            >
+              Save Project
+            </button>
+          )}
         </div>
       </div>
     </div>

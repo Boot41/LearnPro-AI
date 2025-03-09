@@ -48,7 +48,7 @@ const QuizWrapper = () => {
             subject.topics[topicIndex].is_completed = "true";
             
             // Check if this is the last topic in the subject
-            const allTopicsCompleted = subject.topics.every(topic => topic.is_completed);
+            const allTopicsCompleted = subject.topics.every(topic => topic.is_completed==="true");
             
             if (allTopicsCompleted) {
               // Mark the subject as completed
@@ -63,7 +63,7 @@ const QuizWrapper = () => {
             
             // Calculate total completed topics
             const completedTopics = learningPathData.subjects.reduce(
-              (total, subject) => total + subject.topics.filter(topic => topic.is_completed).length,
+              (total, subject) => total + subject.topics.filter(topic => topic.is_completed==="true").length,
               0
             );
             
@@ -72,7 +72,7 @@ const QuizWrapper = () => {
               (total, subject) => total + subject.topics.length,
               0
             );
-            
+            console.log(totalTopics,completedTopics) 
             // Prepare the data for the API request
             const updateData = {
               learning_path: JSON.stringify(learningPathData),
