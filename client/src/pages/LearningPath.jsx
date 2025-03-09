@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BookOpen, Clock, CheckCircle, Calendar, PlusCircle } from 'lucide-react';
+import { BookOpen, Clock, CheckCircle, Calendar, PlusCircle, Toilet } from 'lucide-react';
 import { format, addDays } from 'date-fns';
 import { useLearningPath } from '../contexts/LearningPathContext';
 import { useQuiz } from '../contexts/QuizContext';
@@ -159,6 +159,8 @@ const LearningPath = () => {
           <div className="divide-y divide-gray-100">
             {path.subjects.map((topic, index) => (
               <div key={topic.id} className="p-6 pl-16 relative">
+                {topic.is_completed = topic.is_completed === 'true'}
+                {topic.is_started = topic.is_started === 'true'}
                 {/* Timeline marker */}
                 <div className={`absolute left-6 top-8 w-4 h-4 rounded-full border-2 ${
                   topic.is_completed ? 'bg-green-500 border-green-500' :
@@ -192,6 +194,7 @@ const LearningPath = () => {
                     <div className="mt-3 space-y-1">
                       {topic.topics.map((subtopic, idx) => (
                         <div key={idx} className="flex items-center text-sm">
+                          {subtopic.is_completed = subtopic.is_completed === 'true'}
                           {subtopic.is_completed ? (
                             <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
                           ) : (
@@ -209,15 +212,15 @@ const LearningPath = () => {
                     <div className="mt-4">
                       <p className="text-sm font-medium text-gray-700">Official Documentation:</p>
                       <div className="mt-1 space-y-1">
-                        {topic?.resources?.map(resource => (
+                        {topic?.official_docs?.map(resource => (
                           <a 
                             key={resource.id}
-                            href={resource.url}
+                            href={resource}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-sm text-indigo-600 hover:text-indigo-800 block"
                           >
-                            {resource.title}
+                            {topic.subject_name.slice(0, 20)}...
                           </a>
                         ))}
                       </div>

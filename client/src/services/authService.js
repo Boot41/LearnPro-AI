@@ -8,12 +8,14 @@ import { post, get } from './apiService';
  * @param {string} email - User's email
  * @param {string} password - User's password
  * @param {string} name - User's full name
+ * @param {string} user_type - User's role (employee/admin)
  * @returns {Promise} Promise resolving to the user data
  */
-export const registerUser = async (email, password, name) => {
+export const registerUser = async (email, password, name, user_type) => {
   try {
-    const response = await post('/api/register/', {
+    const response = await post('/api/register', {
       email,
+      user_type: user_type,
       password,
       name
     });
@@ -51,7 +53,7 @@ export const loginUser = async (email, password) => {
  */
 export const checkUserLearningPath = async (userId) => {
   try {
-    const response = await get(`/api/users/${userId}/learning_path/`);
+    const response = await get(`/api/users/${userId}/learning_path`);
     return response;
   } catch (error) {
     // If 404, user doesn't have a learning path yet

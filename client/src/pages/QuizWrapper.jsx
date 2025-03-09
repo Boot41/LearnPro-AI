@@ -45,20 +45,20 @@ const QuizWrapper = () => {
           
           if (topicIndex !== -1) {
             // Mark the topic as completed
-            subject.topics[topicIndex].is_completed = true;
+            subject.topics[topicIndex].is_completed = "true";
             
             // Check if this is the last topic in the subject
             const allTopicsCompleted = subject.topics.every(topic => topic.is_completed);
             
             if (allTopicsCompleted) {
               // Mark the subject as completed
-              subject.is_completed = true;
+              subject.is_completed = "true";
               // Update assessment status and score
               subject.assessment.status = "completed";
               subject.assessment.score = score / 100; // Convert percentage to decimal
             } else {
               // Mark the subject as started if not already
-              subject.is_started = true;
+              subject.is_started = "true";
             }
             
             // Calculate total completed topics

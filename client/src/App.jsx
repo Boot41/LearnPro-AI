@@ -11,11 +11,8 @@ import { QuizProvider } from "./contexts/QuizContext";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import AdminDashboard from "./pages/AdminDashboard";
-import EmployeeDashboard from "./pages/EmployeeDashboard";
 import QuizWrapper from "./pages/QuizWrapper";
-import QuizMCQ from "./pages/QuizMCQ";
 import LearningPath from "./pages/LearningPath";
-import Assessment from "./pages/Assessment";
 import SkillAssessment from "./pages/SkillAssessment";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
@@ -57,16 +54,7 @@ function App() {
                 </ProtectedRoute>
               }
             />
-
             {/* Employee Routes */}
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute requiredRole="employee">
-                  <EmployeeDashboard />
-                </ProtectedRoute>
-              }
-            />
             <Route
               path="/quiz/"
               element={
@@ -76,26 +64,10 @@ function App() {
               }
             />
             <Route
-              path="/quiz-mcq/:topicId"
-              element={
-                <ProtectedRoute requiredRole="employee">
-                  <QuizMCQ />
-                </ProtectedRoute>
-              }
-            />
-            <Route
               path="/learning-path"
               element={
                 <ProtectedRoute requiredRole="employee">
                   <LearningPath />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/assessment/:topicId"
-              element={
-                <ProtectedRoute requiredRole="employee">
-                  <Assessment />
                 </ProtectedRoute>
               }
             />

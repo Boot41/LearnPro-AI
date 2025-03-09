@@ -130,7 +130,7 @@ export const AuthProvider = ({ children }) => {
     
     try {
       console.log("Attempting registration for:", email);
-      const response = await registerUser(email, password, name);
+      const response = await registerUser(email, password, name, role);
       
       if (!response || response.error) {
         setIsLoading(false);
