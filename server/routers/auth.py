@@ -9,30 +9,30 @@ from database import get_db
 
 router = APIRouter(prefix="/api", tags=["authentication"])
 
-@router.post("/signup", response_model=schemas.User)
-def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    # Check if username already exists
-    db_user = db.query(models.User).filter(models.User.username == user.username).first()
-    if db_user:
-        raise HTTPException(status_code=400, detail="Username already registered")
+# @router.post("/signup", response_model=schemas.User)
+# def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+#     # Check if username already exists
+#     db_user = db.query(models.User).filter(models.User.username == user.username).first()
+#     if db_user:
+#         raise HTTPException(status_code=400, detail="Username already registered")
     
-    # Check if email already exists
-    db_email = db.query(models.User).filter(models.User.email == user.email).first()
-    if db_email:
-        raise HTTPException(status_code=400, detail="Email already registered")
+#     # Check if email already exists
+#     db_email = db.query(models.User).filter(models.User.email == user.email).first()
+#     if db_email:
+#         raise HTTPException(status_code=400, detail="Email already registered")
     
-    # Create new user
-    hashed_password = auth.get_password_hash(user.password).decode('utf-8')
-    db_user = models.User(
-        username=user.username,
-        email=user.email,
-        hashed_password=hashed_password,
-        user_type=user.user_type
-    )
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    return db_user
+#     # Create new user
+#     hashed_password = auth.get_password_hash(user.password).decode('utf-8')
+#     db_user = models.User(
+#         username=user.username,
+#         email=user.email,
+#         hashed_password=hashed_password,
+#         user_type=user.user_type
+#     )
+#     db.add(db_user)
+#     db.commit()
+#     db.refresh(db_user)
+#     return db_user
 
 @router.post("/register", response_model=schemas.User)
 def register_user(user_data: dict, db: Session = Depends(get_db)):
@@ -43,11 +43,16 @@ def register_user(user_data: dict, db: Session = Depends(get_db)):
     
     # Create new user
     hashed_password = auth.get_password_hash(user_data["password"])
+    if user_data["user_type"]==models.UserType.ADMIN:
+        user_type = models.UserType.ADMIN
+    else:
+        user_type = models.UserType.EMPLOYEE
+
     db_user = models.User(
         username=user_data["email"],  # Using email as username
         email=user_data["email"],
         hashed_password=hashed_password,
-        user_type=models.UserType.EMPLOYEE  # Default to employee
+        user_type=user_type
     )
     db.add(db_user)
     db.commit()
