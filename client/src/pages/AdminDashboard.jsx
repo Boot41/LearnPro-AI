@@ -8,12 +8,6 @@ import AddEmployeeModal from '../components/AddEmployeeModal';
 import { getEmployees, addEmployee, assignProjectToEmployee } from '../services/employeeService';
 import { getProjects, getProjectCompletionStats } from '../services/projectService';
 
-const chartData = [
-  { name: 'Web Dev', completion: 52.5 },
-  { name: 'Mobile App', completion: 52.5 },
-  { name: 'Data Analysis', completion: 90 },
-];
-
 const AdminDashboard = () => {
   const [showAddEmployeeModal, setShowAddEmployeeModal] = useState(false);
   const [showAddProjectModal, setShowAddProjectModal] = useState(false);

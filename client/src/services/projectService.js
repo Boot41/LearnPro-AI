@@ -17,7 +17,7 @@ export const createProject = async (projectData) => {
       }))
     };
 
-    const response = await post('/api/projects', transformedData);
+    const response = await post('/api/projects/', transformedData);
     return response;
   } catch (error) {
     console.error('Error creating project:', error);
@@ -31,7 +31,7 @@ export const createProject = async (projectData) => {
  */
 export const getProjects = async () => {
   try {
-    const response = await get('/api/projects');
+    const response = await get('/api/projects/');
     return response;
   } catch (error) {
     console.error('Error fetching projects:', error);

@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { useLearningPath } from '../contexts/LearningPathContext';
-import { BookOpen, AlertCircle } from 'lucide-react';
-import { getSkillAssessmentQuiz } from '../services/skillAssessmentService';
+import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import { useLearningPath } from "../contexts/LearningPathContext";
+import { BookOpen, AlertCircle } from "lucide-react";
+import { getSkillAssessmentQuiz } from "../services/skillAssessmentService";
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
   const { fetchLearningPath, setSkillAssessment } = useLearningPath();
@@ -15,33 +15,36 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setIsLoading(true);
-    const userData = await login(email, password);
-    if (userData.role === 'employee') {
-      try{
-        await fetchLearningPath();
-        navigate('/learning-path');
-      } 
-      catch (err){
-        if (err.message?.includes('API request failed with status 404')) {
-          try{
-            const quizData = await getSkillAssessmentQuiz();
-            setSkillAssessment(quizData);
-            navigate('/skill-assessment');
-          } 
-          catch(quizError){
-            console.error('Error fetching skill assessment:', quizError);
-            setError('Contact admin to get a project assigned to you');
-            setIsLoading(false)
+    try {
+      const userData = await login(email, password);
+      if (userData.role === "employee") {
+        try {
+          await fetchLearningPath();
+          navigate("/learning-path");
+        } catch (err) {
+          if (err.message?.includes("API request failed with status 404")) {
+            try {
+              const quizData = await getSkillAssessmentQuiz();
+              setSkillAssessment(quizData);
+              navigate("/skill-assessment");
+            } catch (quizError) {
+              console.error("Error fetching skill assessment:", quizError);
+              setError("Contact admin to get a project assigned to you");
+              setIsLoading(false);
+            }
           }
         }
-      } 
-    }
-    else {
-      navigate('/admin');
+      } else {
+        navigate("/admin");
       }
+    } catch (err) {
+      console.error("Login failed:", err);
+      setError("Invalid credentials");
+      setIsLoading(false);
     }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center p-4">
@@ -53,17 +56,20 @@ const Login = () => {
           <h1 className="mt-4 text-3xl font-bold text-gray-900">LearnPro AI</h1>
           <p className="mt-2 text-gray-600">Sign in to your account</p>
         </div>
-        
+
         {error && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md flex items-center text-red-700">
             <AlertCircle className="h-5 w-5 mr-2" />
             <span>{error}</span>
           </div>
         )}
-        
+
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Email
             </label>
             <input
@@ -76,9 +82,12 @@ const Login = () => {
               required
             />
           </div>
-          
+
           <div className="mb-6">
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Password
             </label>
             <input
@@ -91,31 +100,32 @@ const Login = () => {
               required
             />
           </div>
-          
+
           <button
             type="submit"
             disabled={isLoading}
             className={`w-full py-2 px-4 rounded-md text-white font-medium ${
-              isLoading ? 'bg-indigo-400' : 'bg-indigo-600 hover:bg-indigo-700'
+              isLoading ? "bg-indigo-400" : "bg-indigo-600 hover:bg-indigo-700"
             } focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors`}
           >
-            {isLoading ? 'Signing in...' : 'Sign in'}
+            {isLoading ? "Signing in..." : "Sign in"}
           </button>
         </form>
-        
+
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
-            Don't have an account?{' '}
-            <Link to="/register" className="font-medium text-indigo-600 hover:text-indigo-500">
+            Don't have an account?{" "}
+            <Link
+              to="/register"
+              className="font-medium text-indigo-600 hover:text-indigo-500"
+            >
               Sign up
             </Link>
           </p>
         </div>
-        
+
         <div className="mt-8 border-t border-gray-200 pt-4">
-          <p className="text-xs text-center text-gray-500">
-            Demo credentials:
-          </p>
+          <p className="text-xs text-center text-gray-500">Demo credentials:</p>
           <div className="mt-2 grid grid-cols-2 gap-4 text-xs text-gray-500">
             <div className="bg-gray-50 p-2 rounded">
               <p className="font-semibold">Admin:</p>
