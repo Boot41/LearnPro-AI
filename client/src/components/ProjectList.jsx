@@ -28,7 +28,7 @@ const ProjectList = ({ onAddProject, projects, loading,error }) => {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow overflow-hidden">
+    <div className="bg-white rounded-lg shadow-[0_10px_30px_rgba(0,0,0,0.2)] overflow-hidden">
       <div className="flex justify-between items-center p-6 border-b">
         <h2 className="text-lg font-semibold text-gray-900">Projects</h2>
         <button 

@@ -171,6 +171,7 @@ const AdminDashboard = () => {
 
       <AddEmployeeModal
         projects={projectData}
+        employees={employees}
         show={showAddEmployeeModal}
         onClose={() => setShowAddEmployeeModal(false)}
         onSubmit={handleAddEmployee}

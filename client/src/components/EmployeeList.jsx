@@ -19,7 +19,7 @@ const EmployeeList = ({ employees, onAddEmployee, removeLearningPath }) => {
   };
 
   return (
-  <div className="bg-white rounded-lg shadow overflow-hidden">
+  <div className="bg-white rounded-lg shadow-xl overflow-hidden">
     <div className="flex justify-between items-center p-6 border-b">
       <h2 className="text-lg font-semibold text-gray-900">Employees</h2>
       <button 
@@ -27,7 +27,7 @@ const EmployeeList = ({ employees, onAddEmployee, removeLearningPath }) => {
         className="flex items-center justify-center text-sm px-3 py-1.5 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 w-42"
       >
         <PlusCircle className="h-4 w-4 mr-1" />
-        Add Employee
+        Assign project 
       </button>
     </div>
     <div className="overflow-x-auto">

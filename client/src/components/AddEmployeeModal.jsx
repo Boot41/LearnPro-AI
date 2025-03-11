@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
 
-const AddEmployeeModal = ({ show, onClose, onSubmit, projects }) => {
+const AddEmployeeModal = ({ show, onClose, onSubmit, projects, employees }) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -70,24 +70,22 @@ const AddEmployeeModal = ({ show, onClose, onSubmit, projects }) => {
 
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-              Full Name
-            </label>
-            <input
-              id="name"
-              type="text"
-              value={formData.name}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="John Doe"
-              required
-            />
-          </div>
-          <div className="mb-4">
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
               Email
             </label>
-            <input
+            <select
+              id="email"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              value={formData.email}
+              onChange={handleChange}
+              required
+            >
+              <option value="">Select an employee</option>
+              {employees.map(employee => (
+                <option key={employee.id} value={employee.email}>{employee.name}</option>
+              ))}
+            </select>
+            {/* <input
               id="email"
               type="email"
               value={formData.email}
@@ -95,7 +93,7 @@ const AddEmployeeModal = ({ show, onClose, onSubmit, projects }) => {
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
               placeholder="john@example.com"
               required
-            />
+            /> */}
           </div>
           <div className="mb-4">
             <label htmlFor="projectId" className="block text-sm font-medium text-gray-700 mb-1">

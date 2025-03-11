@@ -12,13 +12,9 @@ const LearningPath = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [loadingSubjectId, setLoadingSubjectId] = useState(null);
   const [firstIncompleteTopic, setFirstIncompleteTopic] = useState(null);
-  const handleStartQuiz = (topicId) => {
-    navigate(`/quiz/${topicId}`);
-  };
-  
+
   const handleContinueLearning = async () => {
     // Find the subject
-    console.log(path)
     function findFirstIncompleteTopic(data) {
     for (const subject of data.subjects) {
         for (const topic of subject.topics) {
@@ -132,7 +128,7 @@ const LearningPath = () => {
 
           <button
             onClick={() => handleContinueLearning()}
-            disabled={isLoading || !firstIncompleteTopic}
+            disabled={isLoading }
             className={`px-4 py-2 w-36 text-sm font-medium text-white ${isLoading && loadingSubjectId === firstIncompleteTopic.id ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'} rounded-md flex items-center justify-center`}
           >
             {isLoading && loadingSubjectId === firstIncompleteTopic.id ? (

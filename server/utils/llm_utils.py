@@ -47,6 +47,7 @@ def groq_calling_function(prompt):
     except requests.exceptions.RequestException as e:
         raise Exception(f"Error calling Groq API: {str(e)}")
     except json.JSONDecodeError as e:
+        return groq_calling_function(prompt)
         raise Exception(f"Error parsing LLM response as JSON: {str(e)}")
     except Exception as e:
         raise Exception(f"Unexpected error: {str(e)}")
@@ -61,7 +62,7 @@ def generate_toic_quiz(topic):
 
     prompt = f"""Generate a multiple choice quiz for the following topic: {topic}. 
     Create questions that cover the topic with 4 options each and one correct answer.
-    The question should test the in depth knowledge of the topic and should be representative of real world scenarios.
+    The questions should test the in depth knowledge of the topic and should be representative of real world scenarios.
     The quiz should have at least 10 questions.
     Make sure each question has only one correct option out of all four.
     Return the response in the following JSON format:
@@ -157,7 +158,10 @@ def generate_learning_path(topics: List[str], scores: Dict[str, int]) -> Dict[st
     prompt = f"""Generate a personalized learning path for a professional project using the following topics and their corresponding initial quiz scores: {topics_scores}
 
 For each topic, generate:
-    - An estimated number of study hours required for mastery.
+    - An estimated number of study hours required for understanding a topic according to the user score in the topic .
+    - Take the users score into account while generating the estimated hours if they have scored high in a topic the estimated hours should be less and vice versa.
+    - Make sure the estimated hours are appropriate and not long and should NOT be more than actually required for that topic.
+    - Make sure the subjects are divided into enough topics such that each topic takes only 2 hours to complete.
     - An assessment configuration that includes a passing threshold.
     - A link to official, freely available documentation (avoid promotional or unofficial sources).
     - Make sure you go in depth with each subject and there are enough numbers of topics in each subject.
@@ -165,6 +169,7 @@ Return the response in the following JSON format:
 {learning_paths_json_structure}
 Make sure the response is a valid JSON string."""
 
+    print(prompt)
     data = groq_calling_function(prompt)
 
     return data

@@ -7,3 +7,5 @@ server2
 static
 etc
 .terraform
+server/utils/cal_creds.json
+server/utils/calendar_creds.json

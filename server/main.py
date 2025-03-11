@@ -7,6 +7,7 @@ import models
 from database import engine, SessionLocal
 from routers import auth, users, projects, learning_paths, skill_assessments
 from fastapi.staticfiles import StaticFiles
+from utils.calendar_utils import create_calendar_event
 
 
 # Create database tables
@@ -18,8 +19,10 @@ app = FastAPI(title="LearnPro API", description="API for LearnPro application")
 # Configure CORS
 origins = [
     "http://localhost:5173",  # Vite default development server
+    "http://localhost:5174",  # Vite default development server
     "http://localhost:3000",  # Just in case you use a different port
     "http://127.0.0.1:5173",
+    "http://127.0.0.1:5174",
     "http://127.0.0.1:8000",
     "https://learnpro-mha4s7stfa-el.a.run.app"
     "http://0.0.0.0:8000",
@@ -77,6 +80,12 @@ app.include_router(skill_assessments.router)
 async def serve_home():
     with open("static/index.html", "r") as f:
         return f.read()
+
+@app.get("/test_calendar")
+def schedule_event():
+    create_calendar_event({
+        "user_email": "rishipradeep@gmail.com"
+    })
 
 @app.get("/test")
 def read_root():
