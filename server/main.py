@@ -4,8 +4,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
 import models
+import subprocess
 from database import engine, SessionLocal
-from routers import auth, users, projects, learning_paths, skill_assessments
+from routers import auth, users, projects, learning_paths, skill_assessments, livekit
 from fastapi.staticfiles import StaticFiles
 from utils.calendar_utils import create_calendar_event
 
@@ -69,12 +70,17 @@ def create_default_admin():
 # Create default admin user on startup
 create_default_admin()
 
+# @app.on_event("startup")
+# def startup_event():
+#     subprocess.Popen(["python", "agent.py","start"])
+
 # Include routers
 app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(projects.router)
 app.include_router(learning_paths.router)
 app.include_router(skill_assessments.router)
+app.include_router(livekit.router)
 
 @app.get("/", response_class=HTMLResponse)
 async def serve_home():
@@ -84,7 +90,9 @@ async def serve_home():
 @app.get("/test_calendar")
 def schedule_event():
     create_calendar_event({
-        "user_email": "rishipradeep@gmail.com"
+        "user_email": "aryankambozz@gmail.com",
+        "total_hours": 10,
+        "daily_session_duration": 2
     })
 
 @app.get("/test")

@@ -1,8 +1,13 @@
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
+from datetime import datetime,timedelta
 
 def create_calendar_event(event_details):
     user_email = event_details.get("user_email")
+    total_hours = event_details.get("total_hours")
+    session_duration = event_details.get("daily_session_duration")
+    total_sessions = int(total_hours/session_duration)
+    start_date = datetime.now()
 
     SCOPES = ['https://www.googleapis.com/auth/calendar']
 
@@ -15,32 +20,36 @@ def create_calendar_event(event_details):
     # Build the Google Calendar service
     service = build('calendar', 'v3', credentials=credentials)
 
-    # Invitee's email address
-    invitee_email = user_email
+    start_datetime = start_date.replace(hour=10, minute=0)
+    end_datetime = start_datetime + timedelta(hours=session_duration)
 
-    # Define the event details, including the attendee
     event = {
-        'summary': 'Meeting with Invitee',
+        'summary': 'Learning Session',
         'location': 'Virtual',
-        'description': '  its aliveeeeeeeeeeeeeeeeee.',
+        'description': 'Scheduled learning time.',
         'start': {
-            'dateTime': '2025-04-01T10:00:00-07:00',
-            'timeZone': 'America/Los_Angeles',
+            'dateTime': start_datetime.isoformat(),
+            'timeZone': 'Asia/Kolkata',
         },
         'end': {
-            'dateTime': '2025-04-01T11:00:00-07:00',
-            'timeZone': 'America/Los_Angeles',
+            'dateTime': end_datetime.isoformat(),
+            'timeZone': 'Asia/Kolkata',
         },
         'attendees': [
-            {'email': invitee_email},
+            {'email': user_email},
         ],
+        'recurrence': [
+            f'RRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR;COUNT={total_sessions}'
+        ]
     }
 
-    # Insert the event into the calendar and send the invitation
+    # Insert event into Google Calendar
     created_event = service.events().insert(
         calendarId='primary',
         body=event,
-        sendUpdates='all'  # This makes sure the invite email is sent to the attendee
+        sendUpdates='all'
     ).execute()
 
     print(f"Event created: {created_event.get('htmlLink')}")
+
+    return created_event
