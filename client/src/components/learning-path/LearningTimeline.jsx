@@ -1,14 +1,24 @@
 import React from "react";
 import SubjectItem from "./SubjectItem";
-
+import { getConversationToken } from "../../services/conversationService";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 const LearningTimeline = ({
   path,
   isLoading,
   loadingSubjectId,
-  firstIncompleteTopic,
-  handleTalkToAI,
   handleContinueLearning,
 }) => {
+  const navigate = useNavigate();
+
+  const { user } = useAuth()
+  const handleTalkToAI = async () => {
+    const email = user.email;
+    // console.log(user,email)
+    const livekit_creds = await getConversationToken(email);
+    localStorage.setItem('livekit_creds', JSON.stringify(livekit_creds));
+    navigate('/learn');
+  };
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden">
       <div className="p-6 border-b border-gray-300 flex justify-between items-center">

@@ -70,9 +70,9 @@ def create_default_admin():
 # Create default admin user on startup
 create_default_admin()
 
-# @app.on_event("startup")
-# def startup_event():
-#     subprocess.Popen(["python", "agent.py","start"])
+@app.on_event("startup")
+def startup_event():
+    subprocess.Popen(["python", "agent.py","start"])
 
 # Include routers
 app.include_router(auth.router)

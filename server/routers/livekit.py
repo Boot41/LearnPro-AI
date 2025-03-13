@@ -15,35 +15,32 @@ router = APIRouter(tags=["livekit"])
 
 api_key = os.getenv('LIVEKIT_API_KEY')
 api_secret = os.getenv('LIVEKIT_API_SECRET')
-livekit_server_url = os.getenv('LIVEKIT_SERVER_URL')
+livekit_server_url = os.getenv('LIVEKIT_URL')
 
-@router.post("/generate_token/{room}")
+@router.post("/generate_token")
 def generate_token( 
-    room:str,
     current_user: models.User = Depends(auth.get_current_active_user),
     db: Session = Depends(get_db)
 ):
     try:
         print(current_user.id,current_user.email)
-        if not room:
-            return JSONResponse({'error': 'Missing room name'}, status=400)
-
         topic = next_incomplete_topic(current_user.id, db)
-
+        room_name = current_user.email.split("@")[0]
         json_data = json.dumps({
-            'subject': topic['subject']['subject_name'],
-            'topic': topic['topic_name']
+            'user_email': current_user.email,
+            'subject_name': topic['subject']['subject_name'],
+            'topic_name': topic['topic_name']
         }) 
         print(json_data) 
         token = api.AccessToken(api_key, api_secret) \
-            .with_identity(current_user.id) \
-            .with_name(current_user.email) \
+            .with_identity(room_name) \
+            .with_name(room_name) \
             .with_metadata(json_data)\
             .with_grants(api.VideoGrants(
                 room_join=True,
-                room=room,
+                room=room_name,
             ))
-
+        print(token.to_jwt())
         return JSONResponse({
             'participantToken': token.to_jwt(),
             'serverUrl': livekit_server_url,

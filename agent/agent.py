@@ -40,16 +40,17 @@ async def entrypoint(ctx: JobContext):
     # print("after parsing -------------------------",metadata)
     # subject = metadata.get("subject")
     # topic = metadata.get("topic")
-    user_email = metadata.get("user_email")
-    first_incomplete_topic = await get_first_incomplete_topic(user_email)
-    # print("subject -------------------------",subject)
-    # print("topic -------------------------",topic)
+    print("user_metadata",metadata)
+    subject_name = metadata.get("subject").get("subject_name")
+    topic_name = metadata.get("topic_name")
+    print("subject -------------------------",subject_name)
+    print("topic -------------------------",topic_name)
     initial_ctx = llm.ChatContext().append(
         role="system",
         text=(
             f"""You are a voice assistant created for helping students with topics they are struggling with. Your interface with users will be voice. 
             You should use short and concise responses, and avoiding usage of unpronouncable punctuation. 
-            The current subject is {subject} and the current topic is {topic}.
+            The current subject is {subject_name} and the current topic is {topic_name}.
             After explaining the current topic to the user ask them if they want to create an assignment for themselves.
             If the user says yes, ask them to confirm by saying "yes, create an assignment" or "no, I don't want to create an assignment".
             Strictly provide answers to the question regarding this context only if user asks anything else just say "I can't provide you any information on that".

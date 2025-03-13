@@ -104,7 +104,7 @@ export const AuthProvider = ({ children }) => {
         name: response.user?.first_name && response.user?.last_name
           ? `${response.user.first_name} ${response.user.last_name}`.trim()
           : email.split('@')[0], // Use part before @ as name if no first/last name
-        email: response.user?.email,
+        email: email,
         role: response.user_type === 'admin' ? 'admin' : 'employee',
       };
       setAuthToken(response.access_token); 

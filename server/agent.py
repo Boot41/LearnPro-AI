@@ -32,26 +32,29 @@ async def entrypoint(ctx: JobContext):
     # wait for the first participant to connect
     participant = await ctx.wait_for_participant()
 
-    # perform an api call to get the information about what we had our last conversation on
-
     metadata = participant.metadata
-    # print("before parsing -------------------------",metadata)
     metadata = json.loads(metadata)
-    # print("after parsing -------------------------",metadata)
-    # subject = metadata.get("subject")
-    # topic = metadata.get("topic")
-    user_email = metadata.get("user_email")
-    first_incomplete_topic = await get_first_incomplete_topic(user_email)
-    # print("subject -------------------------",subject)
-    # print("topic -------------------------",topic)
+
+    bot_type = metadata["bot_type"]
+
+    subject_name = None
+    topic_name = None
+    project_id = None
+    if bot_type == "subject":
+        subject_name = metadata["subject_name"]
+        topic_name = metadata["topic_name"]
+    elif bot_type == "kt_recieve":
+        project_id = metadata["project_id"]
+    elif bot_type == "kt_give":
+        project_id = metadata["project_id"]
+
+
     initial_ctx = llm.ChatContext().append(
         role="system",
         text=(
             f"""You are a voice assistant created for helping students with topics they are struggling with. Your interface with users will be voice. 
             You should use short and concise responses, and avoiding usage of unpronouncable punctuation. 
-            The current subject is {subject} and the current topic is {topic}.
-            After explaining the current topic to the user ask them if they want to create an assignment for themselves.
-            If the user says yes, ask them to confirm by saying "yes, create an assignment" or "no, I don't want to create an assignment".
+            The current subject is {subject_name} and the current topic is {topic_name}.
             Strictly provide answers to the question regarding this context only if user asks anything else just say "I can't provide you any information on that".
             """
         ),

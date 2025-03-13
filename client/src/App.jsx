@@ -19,6 +19,7 @@ import Contact from "./pages/Contact";
 import FAQ from "./pages/FAQ";
 import NotFound from "./pages/NotFound";
 import Layout from "./components/Layout";
+import LearnPage from "./pages/LearnPage";
 
 // Protected route component
 const ProtectedRoute = ({ children, requiredRole }) => {
@@ -63,6 +64,16 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/learn"
+              element={
+                <ProtectedRoute requiredRole="employee">
+                 <LearnPage />
+                </ProtectedRoute>
+              }
+
+
+              />
             <Route
               path="/learning-path"
               element={
