@@ -67,3 +67,4 @@ export const getProjectCompletionStats = async () => {
     throw error;
   }
 };
+

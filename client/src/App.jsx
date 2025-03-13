@@ -8,6 +8,8 @@ import {
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { LearningPathProvider } from "./contexts/LearningPathContext";
 import { QuizProvider } from "./contexts/QuizContext";
+import AssignKT from "./pages/AssignKT";
+import KnowledgeTransfer from "./pages/KnowledgeTransfer";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -55,7 +57,23 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/assign_kt"
+              element={
+                <ProtectedRoute requiredRole="admin">
+                  <AssignKT />
+                </ProtectedRoute>
+              }
+            />
             {/* Employee Routes */}
+            <Route 
+              path="/knowledge_transfer"
+              element={
+                <ProtectedRoute requiredRole="employee">
+                  <KnowledgeTransfer />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/quiz/"
               element={
@@ -71,8 +89,6 @@ function App() {
                  <LearnPage />
                 </ProtectedRoute>
               }
-
-
               />
             <Route
               path="/learning-path"

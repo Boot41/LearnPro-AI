@@ -112,7 +112,7 @@ async def delete_kt_session(
             detail=f"Failed to delete KT sessions: {str(e)}"
         )
 
-@router.get("/", response_model=List[schemas.GiveKT])
+@router.get("/", response_model=List[dict])
 async def list_kt_sessions(
     current_user: models.User = Depends(auth.get_current_active_user),
     db: Session = Depends(get_db)
@@ -126,7 +126,23 @@ async def list_kt_sessions(
         )
     
     kt_sessions = db.query(models.GiveKT).all()
-    return kt_sessions
+    sessions_parsed = []
+    for kt in kt_sessions:
+        session = {}
+        project = db.query(models.Project).filter(models.Project.id == kt.project_id).first()
+        if project:
+            session["project_name"] = project.name
+            session["project_id"] = project.id
+            employee = db.query(models.User).filter(models.User.id == kt.employee_id).first()
+            if employee:
+                session["employee_email"] = employee.email
+        if kt.given_kt_info_id is None:
+            session["status"] = "Pending"
+        else:
+            session["status"] = "Completed"
+        sessions_parsed.append(session)
+    print(sessions_parsed) 
+    return sessions_parsed
 
 @router.get("/pending/{employee_id}", response_model=List[schemas.PendingKTProjectDetails])
 async def get_pending_kt_details(

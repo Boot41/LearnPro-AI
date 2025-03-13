@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X } from 'lucide-react';
 
 const AddEmployeeModal = ({ show, onClose, onSubmit, projects, employees }) => {
+  console.log("something happened",show)
   const [formData, setFormData] = useState({
     name: '',
     email: '',
