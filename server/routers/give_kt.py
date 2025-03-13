@@ -1,11 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
-from datetime import datetime
+from datetime import datetime, timedelta
 import models
 import schemas
 import auth
 from database import get_db
+from utils.calendar_utils import create_calendar_event
 
 router = APIRouter(prefix="/api/give_kt", tags=["give_kt"])
 
@@ -16,7 +17,7 @@ async def create_kt_session(
     db: Session = Depends(get_db)
 ):
     """Create a new KT session entry"""
-    print(assign_give_kt_data)
+    # print(assign_give_kt_data)
     # Check if user is admin
     if current_user.user_type != models.UserType.ADMIN:
         raise HTTPException(
@@ -55,6 +56,11 @@ async def create_kt_session(
         db.add(kt_session)
         db.commit()
         db.refresh(kt_session)
+        create_calendar_event({
+            "user_email": employee.email,
+            "session_duration": 3,
+            "start_date": datetime.now() + timedelta(days=7)
+        })
         return kt_session
         
     except Exception as e:
@@ -121,3 +127,61 @@ async def list_kt_sessions(
     
     kt_sessions = db.query(models.GiveKT).all()
     return kt_sessions
+
+@router.get("/pending/{employee_id}", response_model=List[schemas.PendingKTProjectDetails])
+async def get_pending_kt_details(
+    employee_id: int,
+    current_user: models.User = Depends(auth.get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get detailed information about pending KT assignments for an employee.
+    This endpoint returns detailed information about projects assigned to the employee for KT
+    where given_kt_info_id is null.
+    """
+    # Check if the requesting user is either an admin or the employee themselves
+    if current_user.user_type != models.UserType.ADMIN and current_user.id != employee_id:
+        raise HTTPException(
+            status_code=403,
+            detail="You can only view your own pending KT assignments unless you're an admin"
+        )
+    
+    # Check if employee exists
+    employee = db.query(models.User).filter(
+        models.User.id == employee_id,
+        models.User.user_type == models.UserType.EMPLOYEE
+    ).first()
+    
+    if not employee:
+        raise HTTPException(status_code=404, detail="Employee not found or user is not an employee")
+    
+    # Query for pending KT assignments with project details
+    # We need to join GiveKT with Project and User tables to get all required information
+    results = []
+    
+    # Get all pending KT assignments
+    pending_kt_assignments = db.query(models.GiveKT).filter(
+        models.GiveKT.employee_id == employee_id,
+        models.GiveKT.given_kt_info_id == None
+    ).all()
+    
+    for kt in pending_kt_assignments:
+        # Get project details
+        project = db.query(models.Project).filter(
+            models.Project.id == kt.project_id
+        ).first()
+        
+        if project:
+            # Create detailed response object
+            kt_details = schemas.PendingKTProjectDetails(
+                kt_id=kt.id,
+                project_id=project.id,
+                project_name=project.name,
+                project_description=project.description,
+                employee_id=employee.id,
+                employee_name=employee.username,
+                employee_email=employee.email
+            )
+            results.append(kt_details)
+    
+    return results

@@ -15,6 +15,7 @@ from livekit.agents import (
 )
 from livekit.agents.pipeline import VoicePipelineAgent
 from livekit.plugins import deepgram, openai, silero
+from ChatbotContext import SubjectContext, KTRecieveContext, KTGiveContext
 
 load_dotenv()
 logger = logging.getLogger("voice-assistant")
@@ -37,27 +38,16 @@ async def entrypoint(ctx: JobContext):
 
     bot_type = metadata["bot_type"]
 
-    subject_name = None
-    topic_name = None
-    project_id = None
     if bot_type == "subject":
-        subject_name = metadata["subject_name"]
-        topic_name = metadata["topic_name"]
+        context = SubjectContext(metadata)
     elif bot_type == "kt_recieve":
-        project_id = metadata["project_id"]
+        context = KTRecieveContext(metadata)
     elif bot_type == "kt_give":
-        project_id = metadata["project_id"]
-
+        context = KTGiveContext(metadata)
 
     initial_ctx = llm.ChatContext().append(
         role="system",
-        text=(
-            f"""You are a voice assistant created for helping students with topics they are struggling with. Your interface with users will be voice. 
-            You should use short and concise responses, and avoiding usage of unpronouncable punctuation. 
-            The current subject is {subject_name} and the current topic is {topic_name}.
-            Strictly provide answers to the question regarding this context only if user asks anything else just say "I can't provide you any information on that".
-            """
-        ),
+        text=context.get_initial_context(),
     )
     logger.info(f"metadata : {metadata}")
     logger.info(f"starting voice assistant for participant {participant.identity}")

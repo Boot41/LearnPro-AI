@@ -170,3 +170,16 @@ class GiveKT(GiveKTBase):
 
     class Config:
         from_attributes = True
+
+class PendingKTProjectDetails(BaseModel):
+    """Schema for detailed project information in pending KT assignments"""
+    kt_id: int
+    project_id: int
+    project_name: str
+    project_description: str
+    employee_id: int
+    employee_name: str
+    employee_email: str
+
+    class Config:
+        from_attributes = True

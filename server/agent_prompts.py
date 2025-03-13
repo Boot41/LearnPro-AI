@@ -6,10 +6,10 @@ def get_study_prompt(subject_name, topic_name):
             Strictly provide answers to the question regarding this context only if user asks anything else just say "I can't provide you any information on that".
             """)
 
-def get_kt_recieve_prompt():
+def get_kt_recieve_prompt(project_name):
     return(
-        """
-You are an interviewer tasked with conducting a comprehensive knowledge transfer session about our product. Your goal is to ask detailed questions to an experienced employee to capture all critical information about the product, its history, design, technology, and operational aspects.
+        f"""
+You are an interviewer tasked with conducting a comprehensive knowledge transfer session about our product named {project_name}. Your goal is to ask detailed questions to an experienced employee to capture all critical information about the product, its history, design, technology, and operational aspects.
 
 Please follow these guidelines:
 
@@ -20,7 +20,8 @@ Allow for Clarification: If an answer seems incomplete or needs clarification, a
 Be Thorough: Ensure that all aspects of the product—from business context to technical details—are covered.
 Below are the questions grouped by category:
 
-1. Product Overview and Business Context 1.1. What is the primary purpose of this product?
+1. Product Overview and Business Context 
+1.1. What is the primary purpose of this product?
 1.2. Who is the target audience or customer?
 1.3. What problem(s) does the product aim to solve?
 1.4. What are the core features and functionalities?
