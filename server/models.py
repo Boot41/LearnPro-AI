@@ -81,3 +81,38 @@ class LearningPath(Base):
     # Relationships
     user = relationship("User", backref="learning_paths")
     project = relationship("Project", backref="learning_paths")
+
+class GiveKT(Base):
+    __tablename__ = "give_kt"
+
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    employee_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    given_kt_info_id = Column(Integer, ForeignKey("kt_info.id"), nullable=True)
+    
+    # Relationships
+    project = relationship("Project", backref="give_kt")
+    employee = relationship("User", backref="give_kt")
+    given_kt_info = relationship("KtInfo", backref="give_kt")
+
+class KtInfo(Base):
+    __tablename__ = "kt_info"
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    employee_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    kt_info = Column(String)  # JSON string for KT information
+    original_transcripts = Column(String)  # JSON string for original transcripts
+
+    # Relationships
+    project = relationship("Project", backref="kt_info")
+    employee = relationship("User", backref="kt_info")
+
+class TakeKt(Base):
+    __tablename__ = "take_kt"
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    employee_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    kt_info = Column(Integer, ForeignKey("kt_info.id"), nullable=True)
+    # Relationships
+    project = relationship("Project", backref="take_kt")
+    employee = relationship("User", backref="take_kt")

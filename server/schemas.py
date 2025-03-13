@@ -147,3 +147,26 @@ class ProjectCompletionStats(BaseModel):
     id: int
     name: str
     completionRate: float
+
+class GiveKTBase(BaseModel):
+    """Base schema for KT sessions"""
+    project_id: int
+    employee_id: int
+    given_kt_info_id: Optional[int] = None
+
+class GiveKTCreate(GiveKTBase):
+    """Schema for creating a new KT session"""
+    pass
+
+class GiveKTDelete(BaseModel):
+    """Schema for deleting a KT session"""
+    project_id: int
+
+class GiveKT(GiveKTBase):
+    """Schema for KT session response"""
+    id: Optional[int] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
