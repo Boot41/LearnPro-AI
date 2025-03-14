@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 import models
 import subprocess
 from database import engine, SessionLocal
-from routers import auth, users, projects, learning_paths, skill_assessments, livekit, give_kt
+from routers import auth, users, projects, learning_paths, skill_assessments, livekit, give_kt, take_kt
 from fastapi.staticfiles import StaticFiles
 from utils.calendar_utils import create_calendar_event
 
@@ -82,6 +82,7 @@ app.include_router(learning_paths.router)
 app.include_router(skill_assessments.router)
 app.include_router(livekit.router)
 app.include_router(give_kt.router)
+app.include_router(take_kt.router)
 
 @app.get("/", response_class=HTMLResponse)
 async def serve_home():

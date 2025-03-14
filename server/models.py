@@ -102,7 +102,6 @@ class KtInfo(Base):
     employee_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     kt_info = Column(String)  # JSON string for KT information
     original_transcripts = Column(String)  # JSON string for original transcripts
-
     # Relationships
     project = relationship("Project", backref="kt_info")
     employee = relationship("User", backref="kt_info")
@@ -112,7 +111,10 @@ class TakeKt(Base):
     id = Column(Integer, primary_key=True, index=True)
     project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
     employee_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    kt_info = Column(Integer, ForeignKey("kt_info.id"), nullable=True)
+    kt_info_id = Column(Integer, ForeignKey("kt_info.id"), nullable=True)
+    status = Column(String, nullable=False, default="Pending")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     # Relationships
     project = relationship("Project", backref="take_kt")
     employee = relationship("User", backref="take_kt")

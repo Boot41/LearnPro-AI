@@ -183,3 +183,16 @@ class PendingKTProjectDetails(BaseModel):
 
     class Config:
         from_attributes = True
+
+class TakeKTCreate(BaseModel):
+    """Schema for creating a new Take KT session"""
+    project_id: int
+    email: EmailStr
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "project_id": 1,
+                "email": "employee@example.com"
+            }
+        }

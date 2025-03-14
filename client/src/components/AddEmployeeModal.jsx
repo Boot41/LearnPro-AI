@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { X } from 'lucide-react';
 
 const AddEmployeeModal = ({ show, onClose, onSubmit, projects, employees }) => {
-  console.log("something happened",show)
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -27,11 +26,12 @@ const AddEmployeeModal = ({ show, onClose, onSubmit, projects, employees }) => {
     try {
       const [firstName, ...lastNameParts] = formData.name.trim().split(' ');
       const lastName = lastNameParts.join(' ');
-
+      const employee = employees.find(emp => emp.email === formData.email);
       const employeeData = {
-        first_name: firstName,
+        first_name: firstName || '',
         last_name: lastName || '',
         email: formData.email,
+        employee_id: employee?.id,
         project_id: formData.projectId ? parseInt(formData.projectId) : null
       };
 
