@@ -4,12 +4,56 @@ import { get, post, del } from "./apiService";
  * Get project KT status
  * @returns {Promise} Promise resolving to project KT status
  */
-export const getKtStatus = async () => {
+export const getGiveKt = async () => {
   try {
     const response = await get(`/api/give_kt/`);
     return response;
   } catch (error) {
     console.error('Error fetching project KT status:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get project KT status
+ * @returns {Promise} Promise resolving to project KT status
+ */
+export const getReceiveKt = async () => {
+  try {
+    const response = await get(`/api/take_kt/`);
+    return response;
+  } catch (error) {
+    console.error('Error fetching project KT status:', error);
+    throw error;
+  }
+};
+
+/**
+ * Set project KT status
+ * @param {Object} status - The status to set
+ * @returns {Promise} Promise resolving to the response data
+ */
+export const assignReceiveKt = async (kt) => {
+  try {
+    const response = await post(`/api/take_kt/`, kt);
+    return response;
+  } catch (error) {
+    console.error('Error setting project KT status:', error);
+    throw error;
+  }
+};
+
+/**
+ * Delete project KT status
+ * @param {number} take_kt_id - The ID of the project KT status to delete
+ * @returns {Promise} Promise resolving to the response data
+ */
+export const deleteReceiveKt = async (take_kt_id) => {
+  try { 
+    const response = await del(`/api/take_kt/${take_kt_id}`);
+    return response;
+  } catch (error) {
+    console.error('Error deleting project KT status:', error);
     throw error;
   }
 };

@@ -173,7 +173,7 @@ class GiveKT(GiveKTBase):
 
 class PendingKTProjectDetails(BaseModel):
     """Schema for detailed project information in pending KT assignments"""
-    kt_id: int
+    give_kt_id: int
     project_id: int
     project_name: str
     project_description: str

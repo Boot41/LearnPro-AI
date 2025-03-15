@@ -50,7 +50,7 @@ async def create_take_kt_session(
         models.KtInfo.employee_id == employee.id
     ).first()
     
-    status = "kt_not_created"
+    status = "Kt not created"
     kt_info_id = None
     
     if kt_info:

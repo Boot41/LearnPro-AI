@@ -30,7 +30,7 @@ origins = [
     "http://127.0.0.1:3000",
 ]
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
+# app.mount("/static", StaticFiles(directory="static"), name="static")
 
 app.add_middleware(
     CORSMiddleware,
@@ -84,10 +84,10 @@ app.include_router(livekit.router)
 app.include_router(give_kt.router)
 app.include_router(take_kt.router)
 
-@app.get("/", response_class=HTMLResponse)
-async def serve_home():
-    with open("static/index.html", "r") as f:
-        return f.read()
+# @app.get("/", response_class=HTMLResponse)
+# async def serve_home():
+#     with open("static/index.html", "r") as f:
+#         return f.read()
 
 @app.get("/test_calendar")
 def schedule_event():

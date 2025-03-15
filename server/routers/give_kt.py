@@ -144,27 +144,19 @@ async def list_kt_sessions(
     print(sessions_parsed) 
     return sessions_parsed
 
-@router.get("/pending/{employee_id}", response_model=List[schemas.PendingKTProjectDetails])
+@router.get("/pending", response_model=schemas.PendingKTProjectDetails)
 async def get_pending_kt_details(
-    employee_id: int,
     current_user: models.User = Depends(auth.get_current_active_user),
     db: Session = Depends(get_db)
 ):
     """
     Get detailed information about pending KT assignments for an employee.
     This endpoint returns detailed information about projects assigned to the employee for KT
-    where given_kt_info_id is null.
     """
-    # Check if the requesting user is either an admin or the employee themselves
-    if current_user.user_type != models.UserType.ADMIN and current_user.id != employee_id:
-        raise HTTPException(
-            status_code=403,
-            detail="You can only view your own pending KT assignments unless you're an admin"
-        )
-    
+
     # Check if employee exists
     employee = db.query(models.User).filter(
-        models.User.id == employee_id,
+        models.User.id == current_user.id,
         models.User.user_type == models.UserType.EMPLOYEE
     ).first()
     
@@ -173,31 +165,29 @@ async def get_pending_kt_details(
     
     # Query for pending KT assignments with project details
     # We need to join GiveKT with Project and User tables to get all required information
-    results = []
     
     # Get all pending KT assignments
     pending_kt_assignments = db.query(models.GiveKT).filter(
-        models.GiveKT.employee_id == employee_id,
+        models.GiveKT.employee_id == current_user.id,
         models.GiveKT.given_kt_info_id == None
-    ).all()
+    ).first()
     
-    for kt in pending_kt_assignments:
-        # Get project details
-        project = db.query(models.Project).filter(
-            models.Project.id == kt.project_id
-        ).first()
+    # Get project details
+    project = db.query(models.Project).filter(
+        models.Project.id == pending_kt_assignments.project_id
+    ).first()
         
-        if project:
-            # Create detailed response object
-            kt_details = schemas.PendingKTProjectDetails(
-                kt_id=kt.id,
-                project_id=project.id,
-                project_name=project.name,
-                project_description=project.description,
-                employee_id=employee.id,
-                employee_name=employee.username,
-                employee_email=employee.email
-            )
-            results.append(kt_details)
+    if project:
+        # Create detailed response object
+        kt_details = schemas.PendingKTProjectDetails(
+            give_kt_id=pending_kt_assignments.id,
+            project_id=project.id,
+            project_name=project.name,
+            project_description=project.description,
+            employee_id=employee.id,
+            employee_name=employee.username,
+            employee_email=employee.email
+        )
+    print(kt_details)
     
-    return results
+    return kt_details 
