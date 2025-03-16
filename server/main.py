@@ -1,11 +1,11 @@
-from fastapi import FastAPI
+from fastapi import FastAPI,Depends
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
+from utils.voice_bot_utils import get_kt_info_for_user
 from sqlalchemy.orm import Session
 
 import models
-import subprocess
-from database import engine, SessionLocal
+from database import engine, SessionLocal,get_db
 from routers import auth, users, projects, learning_paths, skill_assessments, livekit, give_kt, take_kt
 from fastapi.staticfiles import StaticFiles
 from utils.calendar_utils import create_calendar_event
@@ -88,6 +88,10 @@ app.include_router(take_kt.router)
 # async def serve_home():
 #     with open("static/index.html", "r") as f:
 #         return f.read()
+
+@app.get("/test_take_kt_token/{user_id}")
+def generate_token(user_id:int):
+    return get_kt_info_for_user(user_id)
 
 @app.get("/test_calendar")
 def schedule_event():

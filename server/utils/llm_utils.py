@@ -1,7 +1,9 @@
 import os
 import json
+from re import escape
 import requests
 from typing import Dict, Any, List
+from fastapi import HTTPException
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -52,6 +54,52 @@ def groq_calling_function(prompt):
     except Exception as e:
         raise Exception(f"Unexpected error: {str(e)}")
 
+def generate_digested_transcripts(raw_transcripts):
+    prompt = f"""
+    Below is the full transcript of a conversation containing comprehensive knowledge on a specific topic. Your task is to clean and standardize the transcript without removing or summarizing any information. The cleaned transcript will later be used as input for another LLM to answer questions based on the knowledge shared in the conversation. 
+
+    Please follow these guidelines:
+    1. Remove extraneous formatting (e.g., extra spaces, inconsistent line breaks, or non-essential symbols) while preserving all the content.
+    2. Standardize speaker labels, punctuation, and capitalization to enhance readability.
+    3. Maintain the original order and context of the conversation.
+    4. Do not omit or alter any details—the cleaned transcript must contain every piece of information from the original.
+    5. Ensure the final output is in plain text, making it easy for another LLM to parse and use for answering subsequent questions.
+
+    Provide the cleaned transcript as the final output.
+
+    Generate a digested version of the following transcripts: {raw_transcripts}.
+    """
+    print(prompt)
+    GROQ_API_KEY = os.getenv('GROQ_API_KEY')
+    if not GROQ_API_KEY:
+        raise ValueError("GROQ_API_KEY environment variable is not set")
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {GROQ_API_KEY}"
+    }
+
+    data = {
+        "model": "llama-3.3-70b-versatile",
+        "messages": [{
+            "role": "user",
+            "content": prompt
+        }]
+    }
+
+    try:
+        response = requests.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            headers=headers,
+            json=data
+        )
+        response.raise_for_status()
+        
+        # Extract the generated text from the response
+        generated_text = response.json()['choices'][0]['message']['content']
+        
+        return generated_text 
+    except Exception as err:
+        raise HTTPException(status_code = 500,detail=str(err))
 
 def generate_toic_quiz(topic):
     """

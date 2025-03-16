@@ -6,6 +6,13 @@ def get_study_prompt(subject_name, topic_name):
             Strictly provide answers to the question regarding this context only if user asks anything else just say "I can't provide you any information on that".
             """)
 
+def get_kt_give_prompt(metadata):
+    return(
+        f"""
+                
+        """
+    )
+
 def get_kt_recieve_prompt(project_name):
     return(
         f"""

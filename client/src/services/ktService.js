@@ -1,5 +1,14 @@
 import { get, post, del } from "./apiService";
 
+export const saveGivenKtTranscripts = async (transcripts,give_kt_id)=>{
+  try {
+      const response = await post("/api/give_kt/save-kt-info",data={kt_transcripts:transcripts,give_kt_id}) 
+      return response
+  } catch (error) {
+    console.error(error) 
+  }
+}
+
 /**
  * Get project KT status
  * @returns {Promise} Promise resolving to project KT status

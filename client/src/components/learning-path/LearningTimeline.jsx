@@ -17,7 +17,7 @@ const LearningTimeline = ({
     // console.log(user,email)
     const livekit_creds = await getConversationToken(email);
     localStorage.setItem('livekit_creds', JSON.stringify(livekit_creds));
-    navigate('/learn');
+    navigate('/voice-ai');
   };
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -33,15 +33,13 @@ const LearningTimeline = ({
       </div>
 
       <div className="relative">
-        {/* Timeline line */}
-
         {/* Timeline items */}
         <div className="flex flex-col space-y-2 my-4 mb-8">
           <div className="absolute mt-8 left-8 top-0 bottom-0 w-0.5 bg-gray-200"></div>
           {path.subjects.map((subject, index) =>{
             console.log(subject)
             return (
-            <div className="">
+            <div className="" id={index}>
               <div
                 className={`relative left-[25px] top-8 w-4 h-4 rounded-full border-2 ${
                   subject.is_completed == 'true'

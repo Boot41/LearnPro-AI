@@ -20,13 +20,28 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import SimpleVoiceAssistant from "./SimpleVoiceAssistant";
 import { NoAgentNotification } from "./NoAgentNotification";
+import { saveGivenKtTranscripts } from "../../services/ktService";
 export default function LiveKitElement({connectionDetails,updateConnectionDetails}) {
   const [agentState, setAgentState] = useState("disconnected");
   const navigate = useNavigate();
   console.log(connectionDetails)
   const disconnectHandler = async () => {
     navigate("/learning-path")
+    if (connectionDetails?.conversation_type=="bot_takes_kt_from_employee"){
+      console.log("here we go")
+      const give_kt_id = connectionDetails.give_kt_id
+      const transcriptions = localStorage.getItem("recived_transcriptions")
+      await saveGivenKtTranscripts(transcriptions,give_kt_id)
+      if (!transcriptions){
+        console.error("No transcriptions found")
+        return 
+      }
+
+    }
     updateConnectionDetails(undefined);
+    // check the type of conversation (give kt or take kt or subject_learning)
+    // if the conversation is give kt pull transcriptions from the local storage and request the backend to digest and update the kt_info
+
   };
   return (
     <div

@@ -1,6 +1,27 @@
+from requests import status_codes
 import models
 import json
-from fastapi import HTTPException
+from fastapi import HTTPException,Depends
+from database import get_db
+
+def get_kt_info_for_user(user_id):
+    db =  next(get_db())
+    try:
+        take_kt_session = db.query(models.TakeKt).filter(
+            models.TakeKt.employee_id == user_id
+        ).first()
+        if not take_kt_session:
+            raise HTTPException(status_code=404,detail="No Take KT assigned to user")
+        kt_info = db.query(models.KtInfo).filter(
+            models.KtInfo.project_id == take_kt_session.project_id
+        ).first()
+        return kt_info
+    except Exception as err:
+        if "No Take" in str(err):
+            raise err
+        else:
+            raise HTTPException(status_code = 500,detail=str(err))
+    
 def project_info_for_give_kt(user_id, db):
     try:
         give_kt_obj = db.query(models.GiveKT).filter(
@@ -13,7 +34,7 @@ def project_info_for_give_kt(user_id, db):
         ).first()
         if not project:
             raise HTTPException(status_code=404, detail='No project found for GiveKT')
-        return {'id': project.id, 'name': project.name, 'description': project.description}
+        return {'id': project.id, 'name': project.name,'give_kt_id':give_kt_obj.id, 'description': project.description}
     except Exception as e:
         print(f"Error getting project info: {e}")
         if hasattr(e, 'detail') and e.detail.find("found"):

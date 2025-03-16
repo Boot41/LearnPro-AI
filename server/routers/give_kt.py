@@ -1,10 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import JSONResponse
+from utils.llm_utils import generate_digested_transcripts
 from sqlalchemy.orm import Session
 from typing import List
 from datetime import datetime, timedelta
 import models
 import schemas
 import auth
+import json
 from database import get_db
 from utils.calendar_utils import create_calendar_event
 
@@ -112,22 +115,33 @@ async def delete_kt_session(
             detail=f"Failed to delete KT sessions: {str(e)}"
         )
 
-@router.get("/", response_model=List[dict])
+@router.get("/", response_model=List[dict]|dict)
 async def list_kt_sessions(
     current_user: models.User = Depends(auth.get_current_active_user),
     db: Session = Depends(get_db)
 ):
     """List all KT sessions"""
     # Check if user is admin
-    if current_user.user_type != models.UserType.ADMIN:
-        raise HTTPException(
-            status_code=403,
-            detail="Only admin users can view KT sessions"
-        )
-    
-    kt_sessions = db.query(models.GiveKT).all()
-    sessions_parsed = []
-    for kt in kt_sessions:
+    if current_user.user_type == models.UserType.ADMIN:
+        kt_sessions = db.query(models.GiveKT).all()
+        sessions_parsed = []
+        for kt in kt_sessions:
+            session = {}
+            project = db.query(models.Project).filter(models.Project.id == kt.project_id).first()
+            if project:
+                session["project_name"] = project.name
+                session["project_id"] = project.id
+                employee = db.query(models.User).filter(models.User.id == kt.employee_id).first()
+                if employee:
+                    session["employee_email"] = employee.email
+            if kt.given_kt_info_id is None:
+                session["status"] = "Pending"
+            else:
+                session["status"] = "Completed"
+            sessions_parsed.append(session)
+        return sessions_parsed
+    else:
+        kt = db.query(models.GiveKT).filter(models.GiveKT.employee_id == current_user.id).first()
         session = {}
         project = db.query(models.Project).filter(models.Project.id == kt.project_id).first()
         if project:
@@ -140,9 +154,41 @@ async def list_kt_sessions(
             session["status"] = "Pending"
         else:
             session["status"] = "Completed"
-        sessions_parsed.append(session)
-    print(sessions_parsed) 
-    return sessions_parsed
+        return session 
+
+@router.post("/save-kt-info",status_code=201)
+async def save_kt_info(
+    kt_info: schemas.Kt_info,
+    current_user: models.User = Depends(auth.get_current_active_user),
+    db: Session = Depends(get_db),
+):
+
+    try:
+        digested_kt = generate_digested_transcripts(kt_info.kt_transcripts)
+        record = db.query(models.GiveKT).filter_by(id=kt_info.give_kt_id).first()
+        give_kt_db = db.query(models.GiveKT).filter_by(id=kt_info.give_kt_id).first()
+        if not give_kt_db.employee_id == current_user.id:
+            raise HTTPException(status_code=400,detail="You are not authorised to create a KT for this project")
+        ktItem = models.KtInfo(
+            project_id = give_kt_db.project_id,
+            employee_id = current_user.id,
+            kt_info = digested_kt,
+            original_transcripts = json.dumps(kt_info.kt_transcripts)
+        )
+        db.add(ktItem)
+        db.commit()
+
+        record.given_kt_info_id = ktItem.id
+        db.commit()
+        return JSONResponse({"detail":"Kt info added to database"})
+        
+    except Exception as err:
+        if "not authorised" in str(err):
+            raise err
+        else:
+            raise HTTPException(status_code=500,detail=str(err))
+    
+
 
 @router.get("/pending", response_model=schemas.PendingKTProjectDetails)
 async def get_pending_kt_details(

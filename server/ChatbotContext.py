@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from agent_prompts import get_study_prompt, get_kt_recieve_prompt
+from agent_prompts import get_study_prompt, get_kt_recieve_prompt, get_kt_give_prompt
 class ChatbotContext(ABC):
     def __init__(self, metadata):
         self.metadata = metadata
@@ -19,4 +19,4 @@ class KTRecieveContext(ChatbotContext):
 
 class KTGiveContext(ChatbotContext):
     def get_initial_context(self) -> str: 
-        return ("To be implemented")
+        return (get_kt_give_prompt(self.metadata))

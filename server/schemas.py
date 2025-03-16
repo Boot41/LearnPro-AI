@@ -1,3 +1,4 @@
+import array
 from pydantic import BaseModel, EmailStr, field_validator, validator, Field
 from typing import Optional, List, Dict
 from models import UserType
@@ -180,6 +181,14 @@ class PendingKTProjectDetails(BaseModel):
     employee_id: int
     employee_name: str
     employee_email: str
+
+    class Config:
+        from_attributes = True
+
+class Kt_info(BaseModel):
+    """Schema for KT information"""
+    kt_transcripts: list[str]
+    give_kt_id: int
 
     class Config:
         from_attributes = True

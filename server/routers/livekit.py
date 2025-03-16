@@ -17,6 +17,43 @@ api_key = os.getenv('LIVEKIT_API_KEY')
 api_secret = os.getenv('LIVEKIT_API_SECRET')
 livekit_server_url = os.getenv('LIVEKIT_URL')
 
+@router.post("/generate_token/take_kt")
+def generate_token_for_take_kt( 
+    current_user: models.User = Depends(auth.get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    try:
+        project_info = project_info_for_give_kt(current_user.id, db)
+        room_name = current_user.email.split("@")[0]
+        json_data = json.dumps({
+            'user_id':current_user.id,
+            'user_email': current_user.email,
+            'project_name': project_info['name'],
+            'project_id': project_info['id'],
+            'bot_type': 'kt_give'
+        }) 
+        # print(json_data) 
+        token = api.AccessToken(api_key, api_secret) \
+            .with_identity(room_name) \
+            .with_name(room_name) \
+            .with_metadata(json_data)\
+            .with_grants(api.VideoGrants(
+                room_join=True,
+                room=room_name,
+            ))
+        # print(token.to_jwt())
+        return JSONResponse({
+            'participantToken': token.to_jwt(),
+            'conversation_type':"bot_gives_kt_to_employee",
+            'serverUrl': livekit_server_url,
+            'assignmentDetails': project_info
+        })
+    except Exception as e:
+        print(f"Error generating token: {e}")
+        if hasattr(e, 'detail') and e.detail.find("found"):
+            raise HTTPException(status_code=404, detail=str(e.detail))
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.post("/generate_token/give_kt")
 def generate_token_for_give_kt( 
@@ -24,9 +61,7 @@ def generate_token_for_give_kt(
     db: Session = Depends(get_db)
 ):
     try:
-        # print(current_user.id,current_user.email)
         project_info = project_info_for_give_kt(current_user.id, db)
-        # print(project_info,"288888888888888888")
         room_name = current_user.email.split("@")[0]
         json_data = json.dumps({
             'user_email': current_user.email,
@@ -45,8 +80,10 @@ def generate_token_for_give_kt(
             ))
         # print(token.to_jwt())
         return JSONResponse({
+            'give_kt_id':project_info['give_kt_id'],
             'participantToken': token.to_jwt(),
             'serverUrl': livekit_server_url,
+            'conversation_type':"bot_takes_kt_from_employee",
             'assignmentDetails': project_info
         })
     except Exception as e:
