@@ -1,5 +1,8 @@
 from abc import ABC, abstractmethod
 from agent_prompts import get_study_prompt, get_kt_recieve_prompt, get_kt_give_prompt
+from server import models
+from utils.voice_bot_utils import get_kt_info_for_user
+
 class ChatbotContext(ABC):
     def __init__(self, metadata):
         self.metadata = metadata
@@ -18,5 +21,7 @@ class KTRecieveContext(ChatbotContext):
 
 
 class KTGiveContext(ChatbotContext):
-    def get_initial_context(self) -> str: 
-        return (get_kt_give_prompt(self.metadata))
+    async def get_initial_context(self) -> str: 
+        kt_content = await get_kt_info_for_user(self.metadata["user_id"])
+        print(kt_content)
+        return (get_kt_give_prompt(kt_content))

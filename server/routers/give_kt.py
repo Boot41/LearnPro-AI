@@ -165,8 +165,8 @@ async def save_kt_info(
 
     try:
         digested_kt = generate_digested_transcripts(kt_info.kt_transcripts)
-        record = db.query(models.GiveKT).filter_by(id=kt_info.give_kt_id).first()
         give_kt_db = db.query(models.GiveKT).filter_by(id=kt_info.give_kt_id).first()
+        take_kt_all = db.query(models.TakeKt).filter_by(project_id=give_kt_db.project_id,status="Kt not created").all()
         if not give_kt_db.employee_id == current_user.id:
             raise HTTPException(status_code=400,detail="You are not authorised to create a KT for this project")
         ktItem = models.KtInfo(
@@ -178,7 +178,11 @@ async def save_kt_info(
         db.add(ktItem)
         db.commit()
 
-        record.given_kt_info_id = ktItem.id
+        give_kt_db.given_kt_info_id = ktItem.id
+        for take_kt in take_kt_all:
+            take_kt.kt_info_id = ktItem.id
+            take_kt.status = "Pending"
+
         db.commit()
         return JSONResponse({"detail":"Kt info added to database"})
         

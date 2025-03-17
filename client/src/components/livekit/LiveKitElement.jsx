@@ -30,8 +30,11 @@ export default function LiveKitElement({connectionDetails,updateConnectionDetail
     if (connectionDetails?.conversation_type=="bot_takes_kt_from_employee"){
       console.log("here we go")
       const give_kt_id = connectionDetails.give_kt_id
-      const transcriptions = localStorage.getItem("recived_transcriptions")
-      await saveGivenKtTranscripts(transcriptions,give_kt_id)
+      const transcriptions = JSON.parse(localStorage.getItem("recived_transcriptions"))
+      const parsed_transcripts = transcriptions.map((transcipt)=>{
+        return transcipt.text
+      })
+      await saveGivenKtTranscripts(parsed_transcripts,give_kt_id)
       if (!transcriptions){
         console.error("No transcriptions found")
         return 

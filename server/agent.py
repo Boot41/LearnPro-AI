@@ -38,14 +38,15 @@ async def entrypoint(ctx: JobContext):
     metadata = json.loads(metadata)
 
     bot_type = metadata["bot_type"]
-
+    greeting = ""
     if bot_type == "subject":
         context = SubjectContext(metadata)
+        greeting = "Hey, how can I help you today?"
     elif bot_type == "kt_recieve":
         context = KTRecieveContext(metadata)
+        greeting = "Hey, We will be conducting a in depth knowledge transfer today. Let me know when you want to start."
     elif bot_type == "kt_give":
-        kt_content = await get_kt_info_for_user(metadata["user_id"])
-        metadata["kt_info"] = kt_content["kt_info"]
+        greeting = "Hey, We will be conducting a in depth knowledge transfer today. Let me know when you want to start."
         context = KTGiveContext(metadata)
 
     initial_ctx = llm.ChatContext().append(
@@ -67,7 +68,7 @@ async def entrypoint(ctx: JobContext):
             model="llama3-8b-8192"
         ),
         tts=deepgram.TTS(
-            model= "aura-asteria-en"
+            model= "aura-zeus-en"
         ),
         chat_ctx=initial_ctx,
     )
@@ -102,7 +103,7 @@ async def entrypoint(ctx: JobContext):
         if msg.message:
             asyncio.create_task(answer_from_text(msg.message))
 
-    await agent.say("Hey, how can I help you today?", allow_interruptions=True)
+    await agent.say(greeting, allow_interruptions=True)
 
 
 if __name__ == "__main__":

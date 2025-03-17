@@ -83,6 +83,7 @@ export const get = async (endpoint, params = {}) => {
  */
 export const post = async (endpoint, data = {}) => {
   try {
+    console.log(data)
     const response = await fetch(`${baseURL}${endpoint}`, {
       method: 'POST',
       headers: getHeaders(),
