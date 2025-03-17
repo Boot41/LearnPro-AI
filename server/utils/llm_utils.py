@@ -56,18 +56,79 @@ def groq_calling_function(prompt):
 
 def generate_digested_transcripts(raw_transcripts):
     prompt = f"""
-    Below is the full transcript of a conversation containing comprehensive knowledge on a specific topic. Your task is to clean and standardize the transcript without removing or summarizing any information. The cleaned transcript will later be used as input for another LLM to answer questions based on the knowledge shared in the conversation. 
+    You are provided with a transcript of a conversation between a voice-based AI agent and a project team member. The transcript is an array of strings that covers various aspects of the project, including product overview, business context, product history, system architecture, technology stack, development process, security, monitoring, team collaboration, known issues, future roadmap, and more.
 
-    Please follow these guidelines:
-    1. Remove extraneous formatting (e.g., extra spaces, inconsistent line breaks, or non-essential symbols) while preserving all the content.
-    2. Standardize speaker labels, punctuation, and capitalization to enhance readability.
-    3. Maintain the original order and context of the conversation.
-    4. Do not omit or alter any details—the cleaned transcript must contain every piece of information from the original.
-    5. Ensure the final output is in plain text, making it easy for another LLM to parse and use for answering subsequent questions.
+    Task:
+    Analyze the appended transcript and generate a succinct, well-structured digest that captures the key insights and details from the conversation. Your summary should include the following sections:
 
-    Provide the cleaned transcript as the final output.
+    Product Overview and Business Context:
 
-    Generate a digested version of the following transcripts: {raw_transcripts}.
+    1: Purpose of the product -
+    Target audience and customer profile
+    Problems addressed and core features
+    Unique selling points compared to competitors
+    Product History and Evolution:
+
+    2: Major milestones and version changes -
+    Evolution of features based on user feedback
+    Key challenges and architectural pivots
+    Architecture and Design:
+
+    3: Overview of system architecture and main components -
+    Data flow and integration points
+    Design patterns and major trade-offs
+    Technology Stack and Dependencies:
+
+    4: Programming languages, frameworks, and libraries -
+    Databases and storage solutions
+    Third-party services and deployment strategies
+    Hosting and scaling methods
+    Development Process and Workflow:
+
+    5: Methodology (e.g., Agile, Scrum) and sprint structure -
+    Source code management and review process
+    CI/CD pipeline and testing strategies
+    Feature prioritization and release management
+    Documentation and Knowledge Sharing:
+
+    6: Available documentation (architecture docs, API guides, etc.) -
+    Tools and platforms used for updates and historical context
+    Areas where documentation could be improved
+    Security, Performance, and Compliance:
+
+    7: Security measures in place (encryption, audits, etc.) -
+    Compliance with relevant standards (GDPR, HIPAA, etc.)
+    Performance monitoring and reliability strategies
+    Monitoring, Logging, and Maintenance:
+
+    8: Tools used for monitoring and logging -
+    Incident management and maintenance routines
+    Team Collaboration and Communication:
+
+    9: Key team roles and stakeholder involvement -
+    Communication channels and meeting rhythms
+    Collaboration tools and strategies
+    Known Issues, Technical Debt, and Future Roadmap:
+
+    10: Current challenges and known bugs -
+    Management of technical debt
+    Limitations of the product and planned future enhancements
+    Onboarding and Training:
+
+    11: Key focus areas for new team members -
+    Training resources and mentorship programs
+    Common pitfalls during the onboarding process
+    Lessons Learned and Best Practices:
+
+    12: Key insights gained from the project’s evolution -
+    Best practices and recommendations for new contributors
+
+    Instructions:
+
+    Read through the appended transcript carefully.
+    Extract and synthesize all relevant details into the sections listed above.
+    Your output should be clear, concise, and organized, enabling someone new to the project to quickly grasp the essential information.
+    {raw_transcripts}
     """
     print(prompt)
     GROQ_API_KEY = os.getenv('GROQ_API_KEY')
@@ -219,5 +280,6 @@ Make sure the response is a valid JSON string."""
 
     print(prompt)
     data = groq_calling_function(prompt)
-
+    data["subjects"][0]["is_started"]='true'
+    print(data)
     return data

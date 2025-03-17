@@ -142,6 +142,8 @@ async def list_kt_sessions(
         return sessions_parsed
     else:
         kt = db.query(models.GiveKT).filter(models.GiveKT.employee_id == current_user.id).first()
+        if not kt:
+            return {}
         session = {}
         project = db.query(models.Project).filter(models.Project.id == kt.project_id).first()
         if project:

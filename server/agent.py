@@ -48,10 +48,10 @@ async def entrypoint(ctx: JobContext):
     elif bot_type == "kt_give":
         greeting = "Hey, We will be conducting a in depth knowledge transfer today. Let me know when you want to start."
         context = KTGiveContext(metadata)
-
+    initial_context_prompt = await context.get_initial_context()
     initial_ctx = llm.ChatContext().append(
         role="system",
-        text=context.get_initial_context(),
+        text= initial_context_prompt,
     )
     logger.info(f"metadata : {metadata}")
     logger.info(f"starting voice assistant for participant {participant.identity}")

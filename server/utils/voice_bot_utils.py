@@ -4,7 +4,7 @@ import json
 from fastapi import HTTPException,Depends
 from database import get_db
 
-def get_kt_info_for_user(user_id):
+async def get_kt_info_for_user(user_id):
     db =  next(get_db())
     try:
         take_kt_session = db.query(models.TakeKt).filter(
@@ -15,6 +15,7 @@ def get_kt_info_for_user(user_id):
         kt_info = db.query(models.KtInfo).filter(
             models.KtInfo.project_id == take_kt_session.project_id
         ).first()
+        print(kt_info)
         return kt_info
     except Exception as err:
         if "No Take" in str(err):
