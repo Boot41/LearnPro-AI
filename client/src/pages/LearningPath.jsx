@@ -12,7 +12,7 @@ import LearningTimeline from '../components/learning-path/LearningTimeline';
 const LearningPath = () => {
   const navigate = useNavigate();
   const { setQuizInfo } = useQuiz();
-  const { learningPath } = useLearningPath();
+  const { learningPath, skillAssessment } = useLearningPath();
   
   const [isLoading, setIsLoading] = useState(false);
   const [loadingSubjectId, setLoadingSubjectId] = useState(null);
@@ -76,11 +76,19 @@ const LearningPath = () => {
   
   // Check if learning path exists
   const hasLearningPath = learningPath && learningPath.learning_path;
+  const hasSkillAssessment = skillAssessment;
   
   // Render message if no learning path exists
-  if (!hasLearningPath) {
-    return <NoLearningPath />;
-  }
+  useEffect(() => { 
+    if (!hasLearningPath) {
+      if (hasSkillAssessment) {
+      navigate("/skill-assessment");
+    }
+    else {
+      return <NoLearningPath />;
+    }
+    }
+  }, [hasLearningPath, hasSkillAssessment]);
   
   // If path data is not yet processed, show loading
   if (!pathData) {

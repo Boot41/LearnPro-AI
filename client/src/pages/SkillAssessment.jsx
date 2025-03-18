@@ -15,14 +15,16 @@ const SkillAssessment = () => {
     navigate('/learning-path');
     return null;
   }
-
+  const [loading, setLoading] = useState(false);
   const handleQuizCompletion = async (results) => {
     try {
-      console.log(results)
+      setLoading(true);
       await submitSkillAssessment(skillAssessment.project_id, user.id, results);
       await fetchLearningPath();
       navigate('/learning-path');
+      setLoading(false);
     } catch (err) {
+      setLoading(false);
       console.error('Failed to submit skill assessment:', err);
       setError('Failed to submit your answers. Please try again.');
     }
@@ -51,12 +53,17 @@ const SkillAssessment = () => {
           This assessment will help customize your learning path for {skillAssessment.project_name}
         </p>
       </div>
-      
-      <Quiz 
-        quizData={skillAssessment.quiz} 
-        onComplete={handleQuizCompletion}
-        isSkillAssessment={true}
-      />
+      {loading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        </div>
+      ) : (
+        <Quiz 
+          quizData={skillAssessment.quiz} 
+          onComplete={handleQuizCompletion}
+          isSkillAssessment={true}
+        />
+      )}
     </div>
   );
 };

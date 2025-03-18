@@ -280,6 +280,13 @@ Make sure the response is a valid JSON string."""
 
     print(prompt)
     data = groq_calling_function(prompt)
+    for subject in data["subjects"]:
+        subject["is_completed"] = 'false'
+        subject["is_started"] = 'false'
+        subject["assessment"]["status"] = "pending"
+        subject["assessment"]["score"] = 'null'
+        for topic in subject["topics"]:
+            topic["is_completed"] = 'false'
+
     data["subjects"][0]["is_started"]='true'
-    print(data)
     return data

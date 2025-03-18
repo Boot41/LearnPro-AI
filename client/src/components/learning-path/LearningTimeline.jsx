@@ -50,7 +50,7 @@ const LearningTimeline = ({
                 }`}
               ></div>
               <SubjectItem
-                key={subject.id || index}
+                key={index}
                 subject={subject}
                 handleTalkToAI={handleTalkToAI}
                 handleContinueLearning={handleContinueLearning}

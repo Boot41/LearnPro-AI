@@ -31,6 +31,7 @@ const Login = () => {
               navigate("/skill-assessment");
             } catch (quizError) {
               console.error("Error fetching skill assessment:", quizError);
+              navigate("/learning-path");
               setError("Contact admin to get a project assigned to you");
               setIsLoading(false);
             }
