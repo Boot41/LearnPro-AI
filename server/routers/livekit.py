@@ -105,7 +105,8 @@ def generate_token(
         json_data = json.dumps({
             'user_email': current_user.email,
             'subject_name': topic['subject']['subject_name'],
-            'topic_name': topic['topic_name']
+            'topic_name': topic['topic_name'],
+            'bot_type': 'subject'
         }) 
         # print(json_data) 
         token = api.AccessToken(api_key, api_secret) \

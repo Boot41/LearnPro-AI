@@ -65,7 +65,7 @@ async def entrypoint(ctx: JobContext):
         vad=ctx.proc.userdata["vad"],
         stt=deepgram.STT(model=dg_model),
         llm = openai.LLM.with_groq(
-            model="llama3-8b-8192"
+            model="gemma2-9b-it"
         ),
         tts=deepgram.TTS(
             model= "aura-zeus-en"

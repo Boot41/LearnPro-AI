@@ -167,6 +167,7 @@ async def save_kt_info(
 
     try:
         digested_kt = generate_digested_transcripts(kt_info.kt_transcripts)
+        print(kt_info.kt_transcripts)
         give_kt_db = db.query(models.GiveKT).filter_by(id=kt_info.give_kt_id).first()
         take_kt_all = db.query(models.TakeKt).filter_by(project_id=give_kt_db.project_id,status="Kt not created").all()
         if not give_kt_db.employee_id == current_user.id:

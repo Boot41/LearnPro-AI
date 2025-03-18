@@ -9,7 +9,7 @@ import schemas
 import auth
 from database import get_db
 from utils.llm_utils import generate_learning_path
-
+from utils.calendar_utils import create_calendar_event_recurring
 router = APIRouter(tags=["learning paths"])
 
 @router.get("/api/learning_paths/me", response_model=schemas.LearningPath)
@@ -87,7 +87,11 @@ def create_learning_path_from_assessment(
     db.add(db_learning_path)
     db.commit()
     db.refresh(db_learning_path)
-    
+    create_calendar_event_recurring({
+            "user_email": current_user.email,
+            "daily_session_duration": 2,
+            "total_hours": learning_path_data['total_estimated_hours']
+        })
     return db_learning_path
 
 @router.get("/api/learning_paths/user/{user_id}", response_model=List[schemas.LearningPath])
