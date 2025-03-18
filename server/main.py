@@ -4,12 +4,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from utils.voice_bot_utils import get_kt_info_for_user
 from sqlalchemy.orm import Session
 
+from pydantic import BaseModel
 import models
 from database import engine, SessionLocal,get_db
 from routers import auth, users, projects, learning_paths, skill_assessments, livekit, give_kt, take_kt
 from fastapi.staticfiles import StaticFiles
 from utils.calendar_utils import create_calendar_event
-
+from utils.github_utils import get_github_commits
 
 # Create database tables
 models.Base.metadata.create_all(bind=engine)
@@ -88,6 +89,18 @@ app.include_router(take_kt.router)
 # async def serve_home():
 #     with open("static/index.html", "r") as f:
 #         return f.read()
+
+class TestGit(BaseModel):
+    username: str
+    repo: str
+
+# @app.post("/test_github")
+# def test_github(test_git:TestGit):
+#     print(test_git.username)
+#     print(test_git.repo)
+#     get_github_commits(test_git.repo,test_git.username)
+#     return "Test GitHub"
+
 
 @app.get("/test_take_kt_token/{user_id}")
 def generate_token(user_id:int):
