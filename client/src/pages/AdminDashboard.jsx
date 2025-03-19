@@ -88,24 +88,31 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleAddProject = async (projectData) => {
+  const handleAddProject = async (projectData, isFileUpload = false) => {
     try {
-      const newProject = {
-        project_name: projectData.projectName,
-        project_description: projectData.projectDescription,
-        subjects: projectData.subjects.map(subject => ({
+      if (isFileUpload) {
+        // For file upload, pass the FormData directly
+        await createProject(projectData, true);
+      } else {
+        // For manual method, format the data
+        const newProject = {
+          project_name: projectData.projectName,
+          project_description: projectData.projectDescription,
+          subjects: projectData.subjects.map(subject => ({
             subject_name: subject.subject_name,
             topics: subject.topics.filter(topic => topic.trim() !== '')
           }))
         };
-        
         await createProject(newProject);
-        const data = await getProjects(); 
-        setProjectData(data);
-
-      } catch (err) {
-        setError(err.message || 'Failed to create project');
       }
+      
+      // Refresh the projects list
+      const data = await getProjects(); 
+      setProjectData(data);
+      setShowAddProjectModal(false);
+    } catch (err) {
+      setError(err.message || 'Failed to create project');
+    }
   };
 
   const handleAddEmployee = async (employeeData) => {

@@ -11,6 +11,7 @@ from routers import auth, users, projects, learning_paths, skill_assessments, li
 from fastapi.staticfiles import StaticFiles
 from utils.calendar_utils import create_calendar_event
 from utils.github_utils import get_github_commits
+import subprocess
 
 # Create database tables
 models.Base.metadata.create_all(bind=engine)
@@ -31,7 +32,7 @@ origins = [
     "http://127.0.0.1:3000",
 ]
 
-# app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 app.add_middleware(
     CORSMiddleware,
@@ -85,10 +86,10 @@ app.include_router(livekit.router)
 app.include_router(give_kt.router)
 app.include_router(take_kt.router)
 
-# @app.get("/", response_class=HTMLResponse)
-# async def serve_home():
-#     with open("static/index.html", "r") as f:
-#         return f.read()
+@app.get("/", response_class=HTMLResponse)
+async def serve_home():
+    with open("static/index.html", "r") as f:
+        return f.read()
 
 class TestGit(BaseModel):
     username: str
@@ -102,17 +103,17 @@ class TestGit(BaseModel):
 #     return "Test GitHub"
 
 
-@app.get("/test_take_kt_token/{user_id}")
-def generate_token(user_id:int):
-    return get_kt_info_for_user(user_id)
+# @app.get("/test_take_kt_token/{user_id}")
+# def generate_token(user_id:int):
+#     return get_kt_info_for_user(user_id)
 
-@app.get("/test_calendar")
-def schedule_event():
-    create_calendar_event({
-        "user_email": "aryankambozz@gmail.com",
-        "total_hours": 10,
-        "daily_session_duration": 2
-    })
+# @app.get("/test_calendar")
+# def schedule_event():
+#     create_calendar_event({
+#         "user_email": "aryankambozz@gmail.com",
+#         "total_hours": 10,
+#         "daily_session_duration": 2
+#     })
 
 @app.get("/test")
 def read_root():

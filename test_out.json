@@ -1,0 +1,110 @@
+{
+    "path_name": "Cybersecurity Essentials",
+    "total_estimated_hours": 20,
+    "subjects": [
+        {
+            "subject_name": "Wireshark",
+            "is_completed": "false",
+            "is_started": "true",
+            "estimated_hours": 4,
+            "assessment": {
+                "threshold": 0.8,
+                "score": null,
+                "status": "pending"
+            },
+            "topics": [
+                {
+                    "topic_name": "Introduction to Wireshark",
+                    "is_completed": "false"
+                },
+                {
+                    "topic_name": "Capturing and Analyzing Network Traffic",
+                    "is_completed": "false"
+                }
+            ],
+            "official_docs": [
+                "https://www.wireshark.org/docs/"
+            ]
+        },
+        {
+            "subject_name": "Injection Attacks",
+            "is_completed": "false",
+            "is_started": "false",
+            "estimated_hours": 4,
+            "assessment": {
+                "threshold": 0.8,
+                "score": null,
+                "status": "pending"
+            },
+            "topics": [
+                {
+                    "topic_name": "Introduction to Injection Attacks",
+                    "is_completed": "false"
+                },
+                {
+                    "topic_name": "Types of Injection Attacks",
+                    "is_completed": "false"
+                }
+            ],
+            "official_docs": [
+                "https://owasp.org/www-community/attacks/Injection_Flavor"
+            ]
+        },
+        {
+            "subject_name": "XSS",
+            "is_completed": "false",
+            "is_started": "false",
+            "estimated_hours": 4,
+            "assessment": {
+                "threshold": 0.8,
+                "score": null,
+                "status": "pending"
+            },
+            "topics": [
+                {
+                    "topic_name": "Introduction to XSS",
+                    "is_completed": "false"
+                },
+                {
+                    "topic_name": "Types of XSS Attacks",
+                    "is_completed": "false"
+                }
+            ],
+            "official_docs": [
+                "https://owasp.org/www-community/attacks/xss/"
+            ]
+        },
+        {
+            "subject_name": "Network Forensics",
+            "is_completed": "false",
+            "is_started": "false",
+            "estimated_hours": 8,
+            "assessment": {
+                "threshold": 0.8,
+                "score": null,
+                "status": "pending"
+            },
+            "topics": [
+                {
+                    "topic_name": "Introduction to Network Forensics",
+                    "is_completed": "false"
+                },
+                {
+                    "topic_name": "Network Traffic Analysis",
+                    "is_completed": "false"
+                },
+                {
+                    "topic_name": "Incident Response and Investigation",
+                    "is_completed": "false"
+                },
+                {
+                    "topic_name": "Network Forensics Tools and Techniques",
+                    "is_completed": "false"
+                }
+            ],
+            "official_docs": [
+                "https://www.sans.org/course/computer-forensic-investigations-windows-intrinsic-response"
+            ]
+        }
+    ]
+}

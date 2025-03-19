@@ -47,7 +47,7 @@ async def create_take_kt_session(
     # Check if there's a KtInfo entry for this project with status "Pending"
     kt_info = db.query(models.KtInfo).filter(
         models.KtInfo.project_id == take_kt_data.project_id,
-        models.KtInfo.employee_id == employee.id
+        # models.KtInfo.employee_id == employee.id
     ).first()
     
     status = "Kt not created"

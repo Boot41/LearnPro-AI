@@ -49,12 +49,90 @@ def groq_calling_function(prompt):
     except requests.exceptions.RequestException as e:
         raise Exception(f"Error calling Groq API: {str(e)}")
     except json.JSONDecodeError as e:
+        print("generated_text",generated_text)
         return groq_calling_function(prompt)
-        raise Exception(f"Error parsing LLM response as JSON: {str(e)}")
+        # raise Exception(f"Error parsing LLM response as JSON: {str(e)}")
     except Exception as e:
         raise Exception(f"Unexpected error: {str(e)}")
 
+def generate_subjects_from_dependencies(dependencies):
+    print(dependencies)
+    prompt = f"""
+    Create subjects that cover the core areas of dependencies and include relevant topics with different levels of depth (e.g., basic, intermediate, advanced) from a professional point of view.
+    Also make sure you remove the dependencies that are not technically relevant like icons related dependencies etc.
+
+    Generate subjects for the following dependencies:
+
+    {dependencies}
+
+    Return the response in the following JSON format:
+    {{
+    "subjects": [
+        {{
+            "subject_name": "Subject Name",
+            "topics": ["Topic 1", "Topic 2", "Topic 3"]
+        }}
+    ]
+    }}
+
+    Make sure the response is a valid JSON string.
+    """
+
+    # Output Format: Respond with a JSON array containing objects. Each object should have a "name" field for the subject and a "topics" field which is an array of strings.
+    # JSON Structure Example:
+    # [
+    #     {{'name': 'Subject_Name','topics':['Topic1','Topic2','Topic3']}}
+    # ]
+    # Guidelines:
+    # While going through the dependencies, make sure you remove any dependencies that are not important like icons related dependencies etc.
+    # Create one subject for each dependency.
+    # The subject name should reflect the main area of application or domain of the dependency.
+    # The topics should cover important sub-concepts or skills relevant to the dependency.
+    # Do not include any additional commentary or text outside of the JSON structure.
+    # Example:
+    # If the dependency is "Django", a possible output might be:
+
+    # [
+    #     {{"name": "Web Development with Django","topics":["Models and ORM","Templates and Views","Authentication and Security"]}}
+    # ]
+
+    # Dependencies:
+    # {dependencies}
+
+    # Make sure the response is a valid JSON string."""
+    # print(prompt)
+    subjects = groq_calling_function(prompt)
+    # print(subjects)
+    return subjects
+
 def generate_digested_transcripts(raw_transcripts):
+    prompt = f"""
+    You are provided with a transcript of a conversation between a voice-based AI agent and a project team member. The transcript is an array of strings that covers what is the problem and its solution, in what files we can find the solution, what are the challenges and pitfalls, and what are the additional considerations while working on this project .
+
+
+    Task:
+    Analyze the appended transcript and generate a succinct, well-structured digest that captures the key insights and details from the conversation. Your summary should include the following sections:
+
+    In the begining of the session the employee is asked to list the features they have worked on. Then, for each feature provided, they answered the questions below. 
+
+    Problem and Solution:
+        "What problem does this feature address, and how does it solve that problem?"
+
+    Implementation Details:
+        "In which files or modules is this feature implemented?"
+
+    Challenges and Pitfalls:
+        "What were the major pitfalls or challenges encountered during the implementation of this feature, and how can these be avoided?"
+
+    Additional Considerations:
+        "Is there anything else I should keep in mind when working on this feature?"
+
+    {raw_transcripts}
+    """
+    data = groq_calling_function(prompt)
+    return data
+
+def generate_digested_transcripts_old(raw_transcripts):
     prompt = f"""
     You are provided with a transcript of a conversation between a voice-based AI agent and a project team member. The transcript is an array of strings that covers various aspects of the project, including product overview, business context, product history, system architecture, technology stack, development process, security, monitoring, team collaboration, known issues, future roadmap, and more.
 

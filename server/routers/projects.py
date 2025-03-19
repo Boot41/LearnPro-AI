@@ -1,18 +1,92 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException,UploadFile, File, Form 
+from typing import Annotated
 from sqlalchemy.orm import Session
 from typing import List
 import json
-
+from time import sleep
 import models
 import schemas
 import auth
 from database import get_db
-from utils.llm_utils import generate_assignment_questions
+from utils.llm_utils import generate_assignment_questions, generate_subjects_from_dependencies, groq_calling_function
+from utils.file_parsing_utils import parse_requirements, parse_package_json
 
 router = APIRouter(prefix="/api/projects", tags=["projects"])
 
-@router.post("/", response_model=schemas.Project)
+@router.post("/")
 async def create_project(
+    projectName: Annotated[str, Form()],
+    projectDescription: Annotated[str, Form()],
+    file: UploadFile = File(...),
+    current_user: models.User = Depends(auth.get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    # Only allow admin users to create projects
+    if current_user.user_type != models.UserType.ADMIN:
+        raise HTTPException(
+            status_code=403,
+            detail="Only admin users can create projects"
+        )
+    
+    try:
+        # Read the file contents
+        contents = await file.read()
+        content_str = contents.decode("utf-8")
+
+        # Determine file type and parse dependencies
+        if file.filename.endswith('.txt'):
+            dependencies = parse_requirements(content_str)
+        elif file.filename.endswith('.json'):
+            dependencies = parse_package_json(content_str)
+        else:
+            raise HTTPException(
+                status_code=400,
+                detail="Unsupported file type. Please upload a requirements.txt or package.json file."
+            )
+        
+        # Call your LLM function (or a helper) that analyzes dependencies
+        # and returns a list of subjects and topics.
+        subjects = generate_subjects_from_dependencies(dependencies)
+        
+        # Optionally, generate quiz questions based on the subjects/topics.
+        quiz_data = generate_assignment_questions([{
+            "subject_name": subject["subject_name"],
+            "topics": subject["topics"]
+        } for subject in subjects['subjects']])
+        # Create the project (you may decide how to set the project name and description)
+        db_project = models.Project(
+            name=projectName,  # You can modify how the name is determined
+            description=projectDescription,
+            skill_assessment_quiz=json.dumps(quiz_data)
+        )
+        print("quiz_data----------------------------------------------------------",quiz_data)
+        db.add(db_project)
+        db.commit()
+        db.refresh(db_project)
+        
+        # Save subjects (and topics) to the database
+        for subject in subjects['subjects']:
+            db_subject = models.Subject(
+                name=subject["subject_name"],
+                topics=",".join(subject["topics"]),
+                project_id=db_project.id
+            )
+            print("db_subject----------------------------------------------------------",db_subject)
+            db.add(db_subject)
+        db.commit()
+        db.refresh(db_project)
+        return db_project
+
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to create project: {str(e)}"
+        )
+
+
+@router.post("/old")
+async def create_project_old(
     project: schemas.ProjectCreate,
     current_user: models.User = Depends(auth.get_current_active_user),
     db: Session = Depends(get_db)

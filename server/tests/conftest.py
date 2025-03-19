@@ -17,7 +17,7 @@ from models import User, UserType, Project, Subject, LearningPath
 import auth as auth_utils
 
 # Import routers directly instead of the main app
-from routers import auth, users, projects, learning_paths, skill_assessments
+from routers import auth, users, projects, learning_paths, skill_assessments, livekit, give_kt, take_kt
 
 # Create a test app without the static files
 def create_test_app():
@@ -30,6 +30,9 @@ def create_test_app():
     app.include_router(projects.router)
     app.include_router(learning_paths.router)
     app.include_router(skill_assessments.router)
+    app.include_router(livekit.router)
+    app.include_router(give_kt.router)
+    app.include_router(take_kt.router)
     
     return app
 

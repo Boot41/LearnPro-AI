@@ -2,7 +2,8 @@
 FROM node:22 AS client_build
 WORKDIR /app/client
 
-ENV VITE_BASE_URL="https://learnpro-mha4s7stfa-el.a.run.app"
+# ENV VITE_BASE_URL="https://learnpro-mha4s7stfa-el.a.run.app"
+ENV VITE_BASE_URL="http://0.0.0.0:8000"
 
 # Copy package files and install dependencies
 COPY client/package*.json ./

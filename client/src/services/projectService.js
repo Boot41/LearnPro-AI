@@ -3,22 +3,29 @@ import { post, get } from './apiService';
 /**
  * Create a new project
  * @param {Object} projectData - Project data including name, description, and subjects
+ * @param {Boolean} isFileUpload - Whether the project is being created via file upload
  * @returns {Promise} Promise resolving to the created project
  */
-export const createProject = async (projectData) => {
+export const createProject = async (projectData, isFileUpload = false) => {
   try {
-    // Transform the data to match the API's expected format
-    const transformedData = {
-      name: projectData.project_name,
-      description: projectData.project_description,
-      subjects: projectData.subjects.map(subject => ({
-        name: subject.subject_name,
-        topics: subject.topics.filter(topic => topic.trim() !== '')
-      }))
-    };
+    if (isFileUpload) {
+      // For file upload method, send FormData directly to the file upload endpoint
+      const response = await post('/api/projects/', projectData, true);
+      return response;
+    } else {
+      // For manual method, transform data and send to the old endpoint
+      const transformedData = {
+        name: projectData.project_name,
+        description: projectData.project_description,
+        subjects: projectData.subjects.map(subject => ({
+          name: subject.subject_name,
+          topics: subject.topics.filter(topic => topic.trim() !== '')
+        }))
+      };
 
-    const response = await post('/api/projects/', transformedData);
-    return response;
+      const response = await post('/api/projects/old', transformedData);
+      return response;
+    }
   } catch (error) {
     console.error('Error creating project:', error);
     throw error;
@@ -67,4 +74,3 @@ export const getProjectCompletionStats = async () => {
     throw error;
   }
 };
-

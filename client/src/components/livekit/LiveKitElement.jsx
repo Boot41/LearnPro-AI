@@ -29,19 +29,19 @@ export default function LiveKitElement({connectionDetails,updateConnectionDetail
 
   const saveTranscripts = async () => {
     console.log("save transcripts")
-    // if (connectionDetails?.conversation_type=="bot_takes_kt_from_employee"){
-    //   const give_kt_id = connectionDetails.give_kt_id
-    //   const transcriptions = JSON.parse(localStorage.getItem("recived_transcriptions"))
-    //   const parsed_transcripts = transcriptions.map((transcipt)=>{
-    //     return transcipt.text
-    //   })
-    //   await saveGivenKtTranscripts(parsed_transcripts,give_kt_id)
-    //   if (!transcriptions){
-    //     console.error("No transcriptions found")
-    //     return 
-    //   }
+    if (connectionDetails?.conversation_type=="bot_takes_kt_from_employee"){
+      const give_kt_id = connectionDetails.give_kt_id
+      const transcriptions = JSON.parse(localStorage.getItem("recived_transcriptions"))
+      const parsed_transcripts = transcriptions.map((transcipt)=>{
+        return transcipt.text
+      })
+      await saveGivenKtTranscripts(parsed_transcripts,give_kt_id)
+      if (!transcriptions){
+        console.error("No transcriptions found")
+        return 
+      }
 
-    // }
+    }
     updateConnectionDetails(undefined);
   }
 
@@ -55,7 +55,7 @@ export default function LiveKitElement({connectionDetails,updateConnectionDetail
   return (
     <div
       data-lk-theme="default"
-      className="h-full grid content-center bg-[var(--lk-bg)]"
+      className="h-full grid content-center bg-[var(--lk-bg)] rounded-3xl overflow-clip"
     >
       <LiveKitRoom
         token={connectionDetails?.participantToken}

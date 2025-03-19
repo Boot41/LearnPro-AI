@@ -52,20 +52,24 @@ MOCK_QUIZ_RESPONSE = {
 }
 
 MOCK_LEARNING_PATH = {
-    "path_name": "Python Web Development",
-    "estimated_completion_time": "4 weeks",
-    "topics": [
+    "subjects": [
         {
-            "name": "Python Basics",
+            "subject_name": "Python",
             "estimated_hours": 10,
-            "resources": ["https://docs.python.org/3/tutorial/"],
-            "assessment": {"type": "quiz", "passing_score": 80}
+            "assessment": {
+                "questions": 5,
+                "time_limit_minutes": 30
+            },
+            "documentation_link": "https://docs.python.org/3/"
         },
         {
-            "name": "FastAPI Introduction",
-            "estimated_hours": 15,
-            "resources": ["https://fastapi.tiangolo.com/"],
-            "assessment": {"type": "project", "passing_score": 70}
+            "subject_name": "FastAPI",
+            "estimated_hours": 8,
+            "assessment": {
+                "questions": 4,
+                "time_limit_minutes": 25
+            },
+            "documentation_link": "https://fastapi.tiangolo.com/"
         }
     ]
 }
@@ -171,11 +175,12 @@ def test_generate_learning_path(mock_groq):
     scores = {"Python": 70, "FastAPI": 50}
     result = generate_learning_path(["Python", "FastAPI"], scores)
     
-    # Assert the result
-    assert "path_name" in result
-    assert "topics" in result
-    assert len(result["topics"]) == 2
-    mock_groq.assert_called_once()
+    # Verify the result
+    assert result == MOCK_LEARNING_PATH
+    assert "subjects" in result
+    assert len(result["subjects"]) == 2
+    assert result["subjects"][0]["subject_name"] == "Python"
+    assert result["subjects"][1]["subject_name"] == "FastAPI"
 
 @patch('utils.llm_utils.requests.post')
 def test_groq_calling_function_error_handling(mock_post):
@@ -203,10 +208,13 @@ def test_groq_calling_function_error_handling(mock_post):
     }
     mock_post.return_value = mock_response
     
-    with pytest.raises(Exception) as exc_info:
-        groq_calling_function("Test prompt")
-    
-    assert "Error parsing LLM response as JSON" in str(exc_info.value)
+    # Patch json.loads to raise JSONDecodeError
+    with patch('json.loads') as mock_loads:
+        mock_loads.side_effect = json.JSONDecodeError("Invalid JSON", "", 0)
+        with pytest.raises(Exception) as exc_info:
+            groq_calling_function("Test prompt")
+        
+        assert "Error parsing LLM response as JSON" in str(exc_info.value)
 
 @patch.dict(os.environ, {})
 @patch('os.getenv', return_value=None)

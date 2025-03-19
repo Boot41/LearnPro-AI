@@ -23,5 +23,5 @@ class KTGiveContext(ChatbotContext):
     async def get_initial_context(self) -> str: 
         kt_content = await get_kt_info_for_user(self.metadata["user_id"])
         transcript = kt_content.kt_info
-        prompt = get_kt_give_prompt(transcript,self.metadata["project_name"])
+        prompt = get_kt_give_prompt(transcript)
         return (prompt)

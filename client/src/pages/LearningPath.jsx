@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useLearningPath } from '../contexts/LearningPathContext';
 import { useQuiz } from '../contexts/QuizContext';
 import { getQuizByTopicName } from '../services/quizService';
@@ -77,43 +77,65 @@ const LearningPath = () => {
   // Check if learning path exists
   const hasLearningPath = learningPath && learningPath.learning_path;
   const hasSkillAssessment = skillAssessment;
-  
+
   // Render message if no learning path exists
-  useEffect(() => { 
+  // const location = useLocation();
+  // const didNavigateRef = useRef(false);
+
+  // useEffect(() => {
+  //   // Check that we haven't already navigated and that the target route isn't the current one.
+  //   if (!didNavigateRef.current && !hasLearningPath && hasSkillAssessment) {
+  //     if (location.pathname !== "/skill-assessment") {
+  //       console.log("Has skill assessment, navigating to /skill-assessment");
+  //       didNavigateRef.current = true;
+  //       navigate("/skill-assessment", { replace: true });
+  //     }
+  //   }
+  // }, [hasLearningPath, hasSkillAssessment, location, navigate]);
+
+  useEffect(() => {
     if (!hasLearningPath) {
       if (hasSkillAssessment) {
-      navigate("/skill-assessment");
-    }
-    else {
-      return <NoLearningPath />;
-    }
+        console.log("Has skill assessment");
+        navigate("/skill-assessment");
+      }
+      else {
+        console.log("No learning path found")
+      }
     }
   }, [hasLearningPath, hasSkillAssessment]);
   
   // If path data is not yet processed, show loading
-  if (!pathData) {
+  if (isLoading) {
     return <div className="flex justify-center items-center h-64">
       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
     </div>;
   }
   
+  if (!hasLearningPath && !hasSkillAssessment) {
+    return <NoLearningPath />;
+  }
   return (
     <div className="space-y-6">
       {/* Learning path overview */}
-      <LearningPathOverview 
-        path={pathData} 
-        completedTopics={learningPath.completed_topics} 
-        totalTopics={learningPath.total_topics} 
-      />
+      {pathData && (
+        <LearningPathOverview 
+          path={pathData} 
+          completedTopics={learningPath?.completed_topics} 
+          totalTopics={learningPath?.total_topics} 
+        />
+      )}
       
       {/* Learning path timeline */}
-      <LearningTimeline 
-        path={pathData}
-        isLoading={isLoading}
-        loadingSubjectId={loadingSubjectId}
-        firstIncompleteTopic={firstIncompleteTopic}
-        handleContinueLearning={handleContinueLearning}
-      />
+      {pathData && (
+        <LearningTimeline 
+          path={pathData}
+          isLoading={isLoading}
+          loadingSubjectId={loadingSubjectId}
+          firstIncompleteTopic={firstIncompleteTopic}
+          handleContinueLearning={handleContinueLearning}
+        />
+      )}
     </div>
   );
 };

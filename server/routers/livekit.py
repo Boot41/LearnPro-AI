@@ -23,13 +23,17 @@ def generate_token_for_take_kt(
     db: Session = Depends(get_db)
 ):
     try:
-        project_info = project_info_for_give_kt(current_user.id, db)
+        # project_info = project_info_for_give_kt(current_user.id, db)
+        # project_info = db.query(models.TakeKt).filter(
+        #     models.TakeKt.employee_id == current_user.id
+        # ).first()
+        # if not project_info:
+        #     raise HTTPException(status_code=404, detail='No TakeKT found for user')
+
         room_name = current_user.email.split("@")[0]
         json_data = json.dumps({
             'user_id':current_user.id,
             'user_email': current_user.email,
-            'project_name': project_info['name'],
-            'project_id': project_info['id'],
             'bot_type': 'kt_give'
         }) 
         # print(json_data) 
@@ -46,7 +50,6 @@ def generate_token_for_take_kt(
             'participantToken': token.to_jwt(),
             'conversation_type':"bot_gives_kt_to_employee",
             'serverUrl': livekit_server_url,
-            'assignmentDetails': project_info
         })
     except Exception as e:
         print(f"Error generating token: {e}")

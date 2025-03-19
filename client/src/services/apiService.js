@@ -11,10 +11,13 @@ const baseURL = import.meta.env.VITE_BASE_URL || '';
  * Get headers for API requests
  * @returns {Object} Headers object with auth token if available
  */
-const getHeaders = () => {
-  const headers = {
-    'Content-Type': 'application/json',
-  };
+const getHeaders = (isFormData = false) => {
+  const headers = {};
+  
+  // Only set Content-Type for JSON requests, not for FormData
+  if (!isFormData) {
+    headers['Content-Type'] = 'application/json';
+  }
 
   const token = getAuthToken();
   if (token) {
@@ -78,17 +81,18 @@ export const get = async (endpoint, params = {}) => {
 /**
  * Make a POST request to the API
  * @param {string} endpoint - The API endpoint
- * @param {Object} data - Data to send in the request body
+ * @param {Object|FormData} data - Data to send in the request body
+ * @param {boolean} isFormData - Whether the data is FormData
  * @returns {Promise} Promise resolving to the response data
  */
-export const post = async (endpoint, data = {}) => {
+export const post = async (endpoint, data = {}, isFormData = false) => {
   try {
-    console.log(data)
+    console.log(data);
     const response = await fetch(`${baseURL}${endpoint}`, {
       method: 'POST',
-      headers: getHeaders(),
+      headers: getHeaders(isFormData),
       credentials: 'include',
-      body: JSON.stringify(data)
+      body: isFormData ? data : JSON.stringify(data)
     });
     
     return await handleResponse(response);

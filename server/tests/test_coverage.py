@@ -6,21 +6,46 @@ These tests are designed to execute code paths that aren't covered by other test
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-import sys
+from unittest.mock import patch, MagicMock
 import os
+import sys
 from pathlib import Path
 
 # Make sure we can import from server directory
 sys.path.append(str(Path(__file__).parent.parent))
 
-# Test main.py coverage
-def test_main_startup():
+# Create a mock for StaticFiles to avoid the directory check
+class MockStaticFiles:
+    def __init__(self, *args, **kwargs):
+        pass
+
+@pytest.fixture
+def mock_static_files():
+    with patch('fastapi.staticfiles.StaticFiles', MockStaticFiles):
+        yield
+
+def test_main_startup(mock_static_files):
     """Test main application startup to improve coverage for main.py"""
+    # Import main module after mocking StaticFiles
     import main
-    from main import app
     
+    # Test that the app was created
+    assert isinstance(main.app, FastAPI)
+    
+    # Test some basic app properties
+    assert main.app.title == "LearnPro AI API"
+    assert main.app.version == "0.1.0"
+    
+    # Test that routers were included
+    router_paths = [route.path for route in main.app.routes]
+    assert "/api/auth" in router_paths or "/api/auth/" in router_paths
+    assert "/api/users" in router_paths or "/api/users/" in router_paths
+    
+    # Test middleware setup
+    assert len(main.app.user_middleware) > 0
+
     # Create test client from the actual app
-    client = TestClient(app)
+    client = TestClient(main.app)
     
     # Test root endpoint
     response = client.get("/")
@@ -121,3 +146,45 @@ def test_skill_assessments_coverage(client):
     response = client.get("/api/skill-assessment/results/1")
     
     # Don't assert status codes - we only care about code coverage
+
+# Test to improve coverage for agent.py
+@pytest.fixture
+def mock_livekit_agent():
+    with patch('agent.LiveKitAgent') as mock:
+        mock_instance = MagicMock()
+        mock.return_value = mock_instance
+        yield mock_instance
+
+def test_agent_initialization(mock_livekit_agent):
+    """Test agent initialization to improve coverage for agent.py"""
+    from agent import create_agent
+    
+    # Set required environment variables
+    os.environ['OPENAI_API_KEY'] = 'test_key'
+    
+    # Call the function
+    agent = create_agent()
+    
+    # Check that the agent was created
+    assert agent is not None
+    assert agent == mock_livekit_agent
+
+# Test to improve coverage for ChatbotContext.py
+def test_chatbot_context():
+    """Test ChatbotContext to improve coverage"""
+    from ChatbotContext import ChatbotContext
+    
+    # Create a context
+    context = ChatbotContext()
+    
+    # Test setting and getting values
+    context.set_value("test_key", "test_value")
+    assert context.get_value("test_key") == "test_value"
+    
+    # Test getting a non-existent value
+    assert context.get_value("non_existent") is None
+    
+    # Test the to_dict method
+    context_dict = context.to_dict()
+    assert isinstance(context_dict, dict)
+    assert context_dict["test_key"] == "test_value"
