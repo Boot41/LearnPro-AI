@@ -118,3 +118,98 @@ class TakeKt(Base):
     # Relationships
     project = relationship("Project", backref="take_kt")
     employee = relationship("User", backref="take_kt")
+
+class GiveProjectOverview(Base):
+    __tablename__ = "give_project_overview"
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    employee_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    # Relationships
+    project = relationship("Project", backref="give_project_overview")
+    employee = relationship("User", backref="give_project_overview")
+
+class GiveKtNew(Base):
+    __tablename__ = "give_kt_new"
+    id = Column(Integer, primary_key=True, index=True)
+    employee_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    repo_url = Column(String, nullable=False)
+    username = Column(String, nullable=False)
+    commit_info = Column(String)  # Reduced commit string from GitHub
+    kt_info_id = Column(Integer, ForeignKey("kt_info_new.id"), nullable=True)  # Nullable
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    # Relationships
+    employee = relationship("User", backref="give_kt_new")
+    # Explicitly specify the foreign key column for this relationship.
+    kt_info = relationship("KtInfoNew", foreign_keys=[kt_info_id], backref="give_kt_new_ref")
+
+
+class KtInfoNew(Base):
+    __tablename__ = "kt_info_new"
+    id = Column(Integer, primary_key=True, index=True)
+    employee_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    give_kt_new_id = Column(Integer, ForeignKey("give_kt_new.id"), nullable=False)  # Not nullable
+    kt_info = Column(String)  # Processed and digested commit information
+    original_commits = Column(String)  # Original commit information JSON
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    # Relationships
+    employee = relationship("User", backref="kt_info_new")
+
+
+class TakeKtNew(Base):
+    __tablename__ = "take_kt_new"
+    id = Column(Integer, primary_key=True, index=True)
+    give_kt_new_id = Column(Integer, ForeignKey("give_kt_new.id"), nullable=False)  # Not nullable
+    employee_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    status = Column(String, default="Kt not created")  # Status can be "Kt not created", "Pending", "Completed"
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    # Relationships
+    employee = relationship("User", backref="take_kt_new")
+    give_kt_new = relationship("GiveKtNew", backref="take_kt_new")
+
+# class GiveKtNew(Base):
+#     __tablename__ = "give_kt_new"
+#     id = Column(Integer, primary_key=True, index=True)
+#     employee_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+#     repo_url = Column(String, nullable=False)
+#     username = Column(String, nullable=False)
+#     commit_info = Column(String)  # Reduced commit string from GitHub
+#     created_at = Column(DateTime(timezone=True), server_default=func.now())
+#     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+#     # Relationships
+#     employee = relationship("User", backref="give_kt_new")
+#     take_kt_info_new = relationship("TakeKtNew", backref="give_kt_new")
+
+# class KtInfoNew(Base):
+#     __tablename__ = "kt_info_new"
+#     id = Column(Integer, primary_key=True, index=True)
+#     employee_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+#     give_kt_new_id = Column(Integer, ForeignKey("give_kt_new.id"), nullable=False)
+#     kt_info = Column(String)  # Processed and digested commit information
+#     original_commits = Column(String)  # Original commit information JSON
+#     created_at = Column(DateTime(timezone=True), server_default=func.now())
+#     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+#     # Relationships
+#     employee = relationship("User", backref="kt_info_new")
+#     give_kt_new = relationship("GiveKtNew", backref="kt_info_new")
+
+# class TakeKtNew(Base):
+#     __tablename__ = "take_kt_new"
+#     id = Column(Integer, primary_key=True, index=True)
+#     give_kt_new_id = Column(Integer, ForeignKey("give_kt_new.id"), nullable=False)
+#     employee_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+#     kt_info_id = Column(Integer, ForeignKey("kt_info_new.id"), nullable=True)
+#     status = Column(String, default="Kt not created")  # Status can be "Kt not created", "Pending", "Completed"
+#     created_at = Column(DateTime(timezone=True), server_default=func.now())
+#     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+#     # Relationships
+#     employee = relationship("User", backref="take_kt_new")
+#     kt_info = relationship("KtInfoNew", backref="take_kt_new")
+#     give_kt_new = relationship("GiveKtNew", backref="take_kt_new")

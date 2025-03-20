@@ -205,3 +205,83 @@ class TakeKTCreate(BaseModel):
                 "email": "employee@example.com"
             }
         }
+
+# GitHub Commit-based Knowledge Transfer Schemas
+class GitHubCommitInfoBase(BaseModel):
+    """Base schema for GitHub Commit information"""
+    repo_url: str
+    username: str
+    employee_id: int
+
+class GitHubCommitInfoCreate(GitHubCommitInfoBase):
+    """Schema for creating a new GitHub Commit information entry"""
+    pass
+
+class GitHubCommitInfo(GitHubCommitInfoBase):
+    """Schema for GitHub Commit information response"""
+    id: int
+    commit_info: Optional[str] = None
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+class KtInfoNewBase(BaseModel):
+    """Base schema for new KT information based on GitHub commits"""
+    employee_id: int
+    github_commit_id: int
+    kt_info: Optional[str] = None
+    original_commits: Optional[str] = None
+
+class KtInfoNewCreate(BaseModel):
+    """Schema for creating new KT information based on GitHub commits"""
+    give_kt_new_id: int
+    kt_transcripts: List[str]
+
+class KtInfoNew(KtInfoNewBase):
+    """Schema for new KT information response"""
+    id: int
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+class TakeKtNewCreate(BaseModel):
+    """Schema for creating a new Take KT session based on GitHub commits"""
+    give_kt_new_id: int
+    email: EmailStr
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "give_kt_new_id": 1,
+                "email": "employee@example.com"
+            }
+        }
+
+class TakeKtNew(BaseModel):
+    """Schema for Take KT session response based on GitHub commits"""
+    id: int
+    employee_id: int
+    give_kt_new_id: int
+    kt_info_id: Optional[int] = None
+    status: str
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+class PendingKTGitHubDetails(BaseModel):
+    """Schema for detailed GitHub information in pending KT assignments"""
+    github_commit_id: int
+    repo_url: str
+    username: str
+    employee_id: int
+    employee_name: str
+    employee_email: str
+
+    class Config:
+        from_attributes = True

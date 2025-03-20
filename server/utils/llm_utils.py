@@ -55,6 +55,61 @@ def groq_calling_function(prompt):
     except Exception as e:
         raise Exception(f"Unexpected error: {str(e)}")
 
+def groq_calling_function_string(prompt):
+    GROQ_API_KEY = os.getenv('GROQ_API_KEY')
+    if not GROQ_API_KEY:
+        raise ValueError("GROQ_API_KEY environment variable is not set")
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {GROQ_API_KEY}"
+    }
+
+    data = {
+        "model": "llama-3.3-70b-versatile",
+        "messages": [{
+            "role": "user",
+            "content": prompt
+        }]
+    }
+
+    try:
+        response = requests.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            headers=headers,
+            json=data
+        )
+        response.raise_for_status()
+        
+        # Extract the generated text from the response
+        generated_text = response.json()['choices'][0]['message']['content']
+        return generated_text
+    except requests.exceptions.RequestException as e:
+        raise Exception(f"Error calling Groq API: {str(e)}")
+    except Exception as e:
+        raise Exception(f"Unexpected error: {str(e)}")
+
+def remove_less_valuable_changes_from_commit(changes):
+    prompt = f"""
+
+        You are provided with a commit log that contains one or more commits. Each commit includes a commit message and a list of files with the number of lines changed. Your task is to filter out the file changes that are not considered "valuable" based on the following rules:
+
+        Value Criterion: A file change is considered valuable only if it has at least 10 lines changed.
+        Commit Relevance: Ignore files listed under commits that should not be used. For example, if a commit's message includes a phrase like “will not be used”, do not include any file changes from that commit.
+
+        Task:
+
+        Parse the commit log.
+        Filter out:
+        Any file with fewer than 10 lines changed.
+        All files under commits that include a phrase such as “will not be used.”
+        Return a list of only the valuable file changes (commit message, file names, and number of lines changed).
+        DO NOT GIVE ME ANY CODE OR ANYTHING I JUST WANT YOU TO RETURN THE PARSED STRING 
+        Input: {changes}
+
+    """
+    output_string = groq_calling_function_string(prompt)
+    return output_string
+    
 def generate_subjects_from_dependencies(dependencies):
     print(dependencies)
     prompt = f"""
@@ -130,6 +185,24 @@ def generate_digested_transcripts(raw_transcripts):
     {raw_transcripts}
     """
     data = groq_calling_function(prompt)
+    return data
+
+def generate_digested_transcripts_github(raw_transcripts):
+    prompt = f"""
+    You are provided with a transcript of a conversation between a voice-based AI agent and a project team member.
+
+    The transcript is an array of strings that documents the conversation about the project. It covers:
+
+    - The different files the user has worked on and their purposes.
+    - Challenges and pitfalls encountered during development.
+    - Additional considerations while working on the project.
+
+    Task:
+    Analyze the appended transcript and generate a succinct, well-structured digest that captures the key insights and details from the conversation. Your summary should include the following sections:
+    Make sure you do not omit any important details.
+    {raw_transcripts}
+    """
+    data = groq_calling_function_string(prompt)
     return data
 
 def generate_digested_transcripts_old(raw_transcripts):
