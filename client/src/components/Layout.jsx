@@ -12,8 +12,9 @@ import {
   Mail,
   HelpCircle,
   Presentation,
+  FileSpreadsheet,
 } from "lucide-react";
-
+import Github from "../assets/github.svg";
 const Layout = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -66,7 +67,14 @@ const Layout = () => {
                   className="flex items-center space-x-2 py-2 px-4 rounded hover:bg-indigo-800"
                 >
                   <Presentation className="h-5 w-5" />
-                  <span>Knowledge Transfer</span>
+                  <span>Project Overview</span>
+                </Link>
+                <Link
+                  to="/assign_github_kt"
+                  className="flex items-center space-x-2 py-2 px-4 rounded hover:bg-indigo-800"
+                >
+                  <img src={Github} alt="GitHub" className="h-6 w-6" />
+                  <span>GitHub KT</span>
                 </Link>
               </>
             ) : (
@@ -83,7 +91,14 @@ const Layout = () => {
                   className="flex items-center space-x-2 py-2 px-4 rounded hover:bg-indigo-800"
                 >
                   <Presentation className="h-5 w-5" />
-                  <span>Knowledge Transfer</span>
+                  <span>Project Overview</span>
+                </Link>
+                <Link
+                  to="/github_knowledge_transfer"
+                  className="flex items-center space-x-2 py-2 px-4 rounded hover:bg-indigo-800"
+                >
+                  <img src={Github} alt="GitHub" className="h-6 w-6 " />
+                  <span>GitHub KT</span>
                 </Link>
               </>
             )}

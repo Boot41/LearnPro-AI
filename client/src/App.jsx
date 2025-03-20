@@ -9,7 +9,9 @@ import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { LearningPathProvider } from "./contexts/LearningPathContext";
 import { QuizProvider } from "./contexts/QuizContext";
 import AssignKT from "./pages/AssignKT";
+import AssignGitHubKT from "./pages/AssignGitHubKT";
 import KnowledgeTransfer from "./pages/KnowledgeTransfer";
+import GitHubKnowledgeTransfer from "./pages/GitHubKnowledgeTransfer";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -22,6 +24,7 @@ import FAQ from "./pages/FAQ";
 import NotFound from "./pages/NotFound";
 import Layout from "./components/Layout";
 import VoiceBot from "./pages/VoiceBot";
+import ProjectOverview from "./pages/ProjectOverview";
 
 // Protected route component
 const ProtectedRoute = ({ children, requiredRole }) => {
@@ -65,12 +68,36 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/assign_github_kt"
+              element={
+                <ProtectedRoute requiredRole="admin">
+                  <AssignGitHubKT />
+                </ProtectedRoute>
+              }
+            />
             {/* Employee Routes */}
             <Route 
               path="/knowledge_transfer"
               element={
                 <ProtectedRoute requiredRole="employee">
                   <KnowledgeTransfer />
+                </ProtectedRoute>
+              }
+            />
+            <Route 
+              path="/github_knowledge_transfer"
+              element={
+                <ProtectedRoute requiredRole="employee">
+                  <GitHubKnowledgeTransfer />
+                </ProtectedRoute>
+              }
+            />
+            <Route 
+              path="/project_overview"
+              element={
+                <ProtectedRoute requiredRole="employee">
+                  <ProjectOverview />
                 </ProtectedRoute>
               }
             />

@@ -1,5 +1,19 @@
 import { get, post, del } from "./apiService";
 
+export const saveGithubGivenKtTranscripts = async (transcripts,give_kt_id)=>{
+  try {
+    console.log(give_kt_id)
+    const data = {
+      "kt_transcripts":transcripts,
+      "give_kt_id":give_kt_id
+    }
+    const response = await post("/api/give_kt/save-kt-info",data) 
+    return response
+  } catch (error) {
+    console.error(error) 
+  }
+}
+
 export const saveGivenKtTranscripts = async (transcripts,give_kt_id)=>{
   try {
       const data = {

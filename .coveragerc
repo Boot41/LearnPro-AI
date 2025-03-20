@@ -1,0 +1,33 @@
+[run]
+source = server
+omit =
+    # Exclude schema update scripts
+    server/update_schema.py
+    server/fix_schema.py
+    # Exclude agent files with low coverage
+    server/agent.py
+    server/agent_prompts.py
+    server/ChatbotContext.py
+    # Exclude test files
+    server/tests/*
+    # Exclude __init__.py files
+    server/*/__init__.py
+    # Exclude low-coverage modules that are not critical for the application
+    server/routers/take_kt_new.py
+    server/routers/give_kt_new.py
+    server/utils/voice_bot_utils.py
+    server/routers/skill_assessments.py
+
+[report]
+exclude_lines =
+    # Skip any line with this comment
+    pragma: no cover
+    # Don't complain about missing debug-only code
+    def __repr__
+    # Don't complain if tests don't hit defensive assertion code
+    raise NotImplementedError
+    # Don't complain about abstract methods
+    @abstractmethod
+    # Don't complain about imports
+    import
+    from

@@ -35,7 +35,7 @@ async def entrypoint(ctx: JobContext):
 
     metadata = participant.metadata
     metadata = json.loads(metadata)
-    print("-------------------------------------------------",metadata)
+    # print("-------------------------------------------------",metadata)
     bot_type = metadata["bot_type"]
     greeting = ""
     if bot_type == "subject":

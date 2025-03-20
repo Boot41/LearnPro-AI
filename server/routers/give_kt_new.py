@@ -83,7 +83,8 @@ async def list_kt_sessions(
         sessions_parsed = []
         for give_kt_session in give_kt_sessions:
             session = {}
-            session["id"] = give_kt_session.id
+
+            session["give_kt_new_id"] = give_kt_session.id
             session["repo_url"] = give_kt_session.repo_url
             session["username"] = give_kt_session.username
             

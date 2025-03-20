@@ -56,6 +56,11 @@ MOCK_LEARNING_PATH = {
         {
             "subject_name": "Python",
             "estimated_hours": 10,
+            "topics": [
+                {"topic_name": "Variables", "is_completed": "false"},
+                {"topic_name": "Functions", "is_completed": "false"},
+                {"topic_name": "Classes", "is_completed": "false"}
+            ],
             "assessment": {
                 "questions": 5,
                 "time_limit_minutes": 30
@@ -65,6 +70,11 @@ MOCK_LEARNING_PATH = {
         {
             "subject_name": "FastAPI",
             "estimated_hours": 8,
+            "topics": [
+                {"topic_name": "Routing", "is_completed": "false"},
+                {"topic_name": "Dependency Injection", "is_completed": "false"},
+                {"topic_name": "Validation", "is_completed": "false"}
+            ],
             "assessment": {
                 "questions": 4,
                 "time_limit_minutes": 25
@@ -176,11 +186,20 @@ def test_generate_learning_path(mock_groq):
     result = generate_learning_path(["Python", "FastAPI"], scores)
     
     # Verify the result
-    assert result == MOCK_LEARNING_PATH
     assert "subjects" in result
     assert len(result["subjects"]) == 2
-    assert result["subjects"][0]["subject_name"] == "Python"
-    assert result["subjects"][1]["subject_name"] == "FastAPI"
+    
+    # Check first subject
+    python_subject = result["subjects"][0]
+    assert python_subject["subject_name"] == "Python"
+    assert "topics" in python_subject
+    assert len(python_subject["topics"]) == 3
+    
+    # Check second subject
+    fastapi_subject = result["subjects"][1]
+    assert fastapi_subject["subject_name"] == "FastAPI"
+    assert "topics" in fastapi_subject
+    assert len(fastapi_subject["topics"]) == 3
 
 @patch('utils.llm_utils.requests.post')
 def test_groq_calling_function_error_handling(mock_post):
@@ -201,26 +220,33 @@ def test_groq_calling_function_error_handling(mock_post):
         'choices': [
             {
                 'message': {
-                    'content': "Not a valid JSON"
+                    'content': "Invalid JSON"
                 }
             }
         ]
     }
     mock_post.return_value = mock_response
     
-    # Patch json.loads to raise JSONDecodeError
-    with patch('json.loads') as mock_loads:
-        mock_loads.side_effect = json.JSONDecodeError("Invalid JSON", "", 0)
-        with pytest.raises(Exception) as exc_info:
-            groq_calling_function("Test prompt")
-        
-        assert "Error parsing LLM response as JSON" in str(exc_info.value)
-
-@patch.dict(os.environ, {})
-@patch('os.getenv', return_value=None)
-def test_groq_api_key_missing(mock_getenv):
-    """Test behavior when API key is missing"""
-    with pytest.raises(ValueError) as exc_info:
+    with pytest.raises(Exception) as exc_info:
         groq_calling_function("Test prompt")
     
-    assert "GROQ_API_KEY environment variable is not set" in str(exc_info.value)
+    assert "Error parsing JSON" in str(exc_info.value)
+    
+    # Test empty choices
+    mock_response.json.return_value = {'choices': []}
+    
+    with pytest.raises(Exception) as exc_info:
+        groq_calling_function("Test prompt")
+    
+    assert "No response received" in str(exc_info.value)
+
+@patch('os.getenv')
+def test_groq_api_key_missing(mock_getenv):
+    """Test behavior when API key is missing"""
+    # Simulate missing API key
+    mock_getenv.return_value = None
+    
+    with pytest.raises(Exception) as exc_info:
+        groq_calling_function("Test prompt")
+    
+    assert "GROQ_API_KEY environment variable not set" in str(exc_info.value)

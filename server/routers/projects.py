@@ -59,7 +59,7 @@ async def create_project(
             description=projectDescription,
             skill_assessment_quiz=json.dumps(quiz_data)
         )
-        print("quiz_data----------------------------------------------------------",quiz_data)
+        # print("quiz_data----------------------------------------------------------",quiz_data)
         db.add(db_project)
         db.commit()
         db.refresh(db_project)
@@ -71,7 +71,7 @@ async def create_project(
                 topics=",".join(subject["topics"]),
                 project_id=db_project.id
             )
-            print("db_subject----------------------------------------------------------",db_subject)
+            # print("db_subject----------------------------------------------------------",db_subject)
             db.add(db_subject)
         db.commit()
         db.refresh(db_project)

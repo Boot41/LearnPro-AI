@@ -1,6 +1,8 @@
 import pytest
 from fastapi import status
 import json
+import io
+from unittest.mock import patch
 
 def test_list_projects(client, employee_token, sample_project):
     """Test listing all projects"""
@@ -42,33 +44,68 @@ def test_get_nonexistent_project(client, employee_token):
     assert response.status_code == status.HTTP_404_NOT_FOUND
     assert "project not found" in response.json()["detail"].lower()
 
-def test_create_project_admin(client, admin_token):
-    """Test creating a new project as admin"""
-    project_data = {
-        "name": "New Test Project",
-        "description": "A new project for testing",
-        "subjects": [
+@patch('routers.projects.generate_subjects_from_dependencies')
+@patch('routers.projects.generate_assignment_questions')
+def test_create_project_admin(mock_generate_assignment, mock_generate_subjects, client, admin_token):
+    """Test creating a new project as admin with file upload"""
+    # Mock the LLM functions
+    mock_generate_subjects.return_value = {
+        'subjects': [
             {
-                "name": "New Subject 1",
-                "topics": ["New Topic A", "New Topic B"]
+                'subject_name': 'FastAPI',
+                'topics': ['Routing', 'Middleware', 'Dependency Injection']
             },
             {
-                "name": "New Subject 2",
-                "topics": ["New Topic X", "New Topic Y"]
+                'subject_name': 'SQLAlchemy',
+                'topics': ['Models', 'Queries', 'Relationships']
             }
         ]
+    }
+    
+    mock_generate_assignment.return_value = {
+        'assignments': [
+            {
+                'title': 'Build a REST API',
+                'description': 'Create a RESTful API with CRUD operations',
+                'difficulty': 'Intermediate',
+                'estimated_time': '3 hours',
+                'requirements': ['FastAPI', 'SQLAlchemy', 'Pydantic'],
+                'grading_criteria': 'Functionality, code quality, documentation'
+            }
+        ]
+    }
+    
+    # Create a sample requirements.txt file
+    requirements_content = """
+    fastapi==0.68.0
+    sqlalchemy==1.4.23
+    pydantic==1.8.2
+    """
+    requirements_file = io.BytesIO(requirements_content.encode())
+    
+    # Form data
+    form_data = {
+        "projectName": "New Test Project",
+        "projectDescription": "A new project for testing"
+    }
+    
+    # Include file in the form data
+    files = {
+        "file": ("requirements.txt", requirements_file, "text/plain")
     }
     
     response = client.post(
         "/api/projects/",
         headers=admin_token,
-        json=project_data
+        data=form_data,
+        files=files
     )
+    
     assert response.status_code == status.HTTP_200_OK
     new_project = response.json()
     assert "id" in new_project
-    assert new_project["name"] == project_data["name"]
-    assert new_project["description"] == project_data["description"]
+    assert new_project["name"] == form_data["projectName"]
+    assert new_project["description"] == form_data["projectDescription"]
     
     # Verify the project was created
     response = client.get(
@@ -77,24 +114,35 @@ def test_create_project_admin(client, admin_token):
     )
     assert response.status_code == status.HTTP_200_OK
 
-def test_create_project_unauthorized(client, employee_token):
+@patch('routers.projects.generate_subjects_from_dependencies')
+@patch('routers.projects.generate_assignment_questions')
+def test_create_project_unauthorized(mock_generate_assignment, mock_generate_subjects, client, employee_token):
     """Test that non-admin users cannot create projects"""
-    project_data = {
-        "name": "Unauthorized Project",
-        "description": "A project that should not be created",
-        "subjects": [
-            {
-                "name": "Subject X",
-                "topics": ["Topic 1", "Topic 2"]
-            }
-        ]
+    # Create a sample requirements.txt file
+    requirements_content = """
+    fastapi==0.68.0
+    sqlalchemy==1.4.23
+    """
+    requirements_file = io.BytesIO(requirements_content.encode())
+    
+    # Form data
+    form_data = {
+        "projectName": "Unauthorized Project",
+        "projectDescription": "A project that should not be created"
+    }
+    
+    # Include file in the form data
+    files = {
+        "file": ("requirements.txt", requirements_file, "text/plain")
     }
     
     response = client.post(
         "/api/projects/",
         headers=employee_token,
-        json=project_data
+        data=form_data,
+        files=files
     )
+    
     assert response.status_code == status.HTTP_403_FORBIDDEN
     assert "only admin users" in response.json()["detail"].lower()
 

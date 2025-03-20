@@ -7,7 +7,6 @@ import {
   getLKitTokenGiveKt,
   getLKitTokenTakeKt,
 } from "../services/conversationService";
-import { saveGivenKtTranscripts } from "../services/ktService";
 export const KnowledgeTransfer = () => {
   const navigate = useNavigate();
   const [isLoading, setLoading] = useState(false);

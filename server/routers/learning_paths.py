@@ -54,7 +54,7 @@ def create_learning_path_from_assessment(
     db: Session = Depends(get_db)
 ):
     """Create a learning path based on skill assessment quiz results"""
-    print(current_user)
+    # print(current_user)
     if current_user.user_type != models.UserType.EMPLOYEE:
         raise HTTPException(
             status_code=403,

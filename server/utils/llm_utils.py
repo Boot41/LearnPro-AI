@@ -49,7 +49,7 @@ def groq_calling_function(prompt):
     except requests.exceptions.RequestException as e:
         raise Exception(f"Error calling Groq API: {str(e)}")
     except json.JSONDecodeError as e:
-        print("generated_text",generated_text)
+        # print("generated_text",generated_text)
         return groq_calling_function(prompt)
         # raise Exception(f"Error parsing LLM response as JSON: {str(e)}")
     except Exception as e:
@@ -111,7 +111,7 @@ def remove_less_valuable_changes_from_commit(changes):
     return output_string
     
 def generate_subjects_from_dependencies(dependencies):
-    print(dependencies)
+    # print(dependencies)
     prompt = f"""
     Create subjects that cover the core areas of dependencies and include relevant topics with different levels of depth (e.g., basic, intermediate, advanced) from a professional point of view.
     Also make sure you remove the dependencies that are not technically relevant like icons related dependencies etc.
@@ -281,7 +281,7 @@ def generate_digested_transcripts_old(raw_transcripts):
     Your output should be clear, concise, and organized, enabling someone new to the project to quickly grasp the essential information.
     {raw_transcripts}
     """
-    print(prompt)
+    # print(prompt)
     GROQ_API_KEY = os.getenv('GROQ_API_KEY')
     if not GROQ_API_KEY:
         raise ValueError("GROQ_API_KEY environment variable is not set")
@@ -429,7 +429,7 @@ Return the response in the following JSON format:
 {learning_paths_json_structure}
 Make sure the response is a valid JSON string."""
 
-    print(prompt)
+    # print(prompt)
     data = groq_calling_function(prompt)
     for subject in data["subjects"]:
         subject["is_completed"] = 'false'

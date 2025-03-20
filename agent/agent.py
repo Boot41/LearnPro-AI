@@ -40,11 +40,11 @@ async def entrypoint(ctx: JobContext):
     # print("after parsing -------------------------",metadata)
     # subject = metadata.get("subject")
     # topic = metadata.get("topic")
-    print("user_metadata",metadata)
+    # print("user_metadata",metadata)
     subject_name = metadata.get("subject").get("subject_name")
     topic_name = metadata.get("topic_name")
-    print("subject -------------------------",subject_name)
-    print("topic -------------------------",topic_name)
+    # print("subject -------------------------",subject_name)
+    # print("topic -------------------------",topic_name)
     initial_ctx = llm.ChatContext().append(
         role="system",
         text=(

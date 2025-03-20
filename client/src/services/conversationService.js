@@ -31,3 +31,25 @@ export const getLKitTokenTakeKt = async ()=>{
     throw error
   }
 }
+
+export const getLKitTokenTakeGitHubKt = async ()=>{
+  try{
+    const response = await post("/generate_token/github_give_kt")
+    console.log(response)
+    return response;
+  }catch(error){
+    console.error('Conversation token error:',error)
+    throw error
+  }
+}
+
+export const getLKitTokenGiveGitHubKt = async ()=>{
+  try{
+    const response = await post("/generate_token/github_take_kt")
+    console.log(response)
+    return response;
+  }catch(error){
+    console.error('Conversation token error:',error)
+    throw error
+  }
+}

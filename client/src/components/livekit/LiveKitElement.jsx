@@ -22,14 +22,27 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import SimpleVoiceAssistant from "./SimpleVoiceAssistant";
 import { NoAgentNotification } from "./NoAgentNotification";
-import { saveGivenKtTranscripts } from "../../services/ktService";
+import { saveGivenKtTranscripts, saveGithubGivenKtTranscripts } from "../../services/ktService";
 export default function LiveKitElement({connectionDetails,updateConnectionDetails}) {
   const [agentState, setAgentState] = useState("disconnected");
   const navigate = useNavigate();
 
   const saveTranscripts = async () => {
-    console.log("save transcripts")
-    if (connectionDetails?.conversation_type=="bot_takes_kt_from_employee"){
+    console.log("save transcripts",connectionDetails)
+    if (connectionDetails?.bot_type==="github_give"){
+      const give_kt_id = connectionDetails.give_kt_new_id
+      const transcriptions = JSON.parse(localStorage.getItem("recived_transcriptions"))
+      const parsed_transcripts = transcriptions.map((transcipt)=>{
+        return transcipt.text
+      })
+      await saveGithubGivenKtTranscripts(parsed_transcripts,give_kt_id)
+      if (!transcriptions){
+        console.error("No transcriptions found")
+        return 
+      }
+      updateConnectionDetails(undefined);
+    }
+    if (connectionDetails?.conversation_type=="bot_takes_kt_from_employee"&&!(connectionDetails?.bot_type)){
       const give_kt_id = connectionDetails.give_kt_id
       const transcriptions = JSON.parse(localStorage.getItem("recived_transcriptions"))
       const parsed_transcripts = transcriptions.map((transcipt)=>{
@@ -40,18 +53,18 @@ export default function LiveKitElement({connectionDetails,updateConnectionDetail
         console.error("No transcriptions found")
         return 
       }
-
+      updateConnectionDetails(undefined);
     }
-    updateConnectionDetails(undefined);
   }
 
   const disconnectHandler = async () => {
-    navigate("/knowledge_transfer")
+    navigate("/learning-path")
     updateConnectionDetails(undefined);
     // check the type of conversation (give kt or take kt or subject_learning)
     // if the conversation is give kt pull transcriptions from the local storage and request the backend to digest and update the kt_info
 
   };
+  console.log(connectionDetails?.bot_type)
   return (
     <div
       data-lk-theme="default"

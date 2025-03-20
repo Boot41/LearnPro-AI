@@ -49,7 +49,7 @@ def generate_token_for_github_give_kt(
             'participantToken': token.to_jwt(),
             'conversation_type':"bot_gives_kt_to_employee",
             'serverUrl': livekit_server_url,
-
+            'give_kt_new_id': give_kt_obj.id,
             'user_id':current_user.id,
             'user_email': current_user.email,
             'bot_type': 'github_take',
@@ -67,7 +67,9 @@ def generate_token_for_github_take_kt(
     db: Session = Depends(get_db)
 ):
     try:
-
+        give_kt_new= db.query(models.GiveKtNew).filter(
+            models.GiveKtNew.employee_id == current_user.id
+        ).first()
         room_name = current_user.email.split("@")[0]
         json_data = json.dumps({
             'user_id':current_user.id,
@@ -88,7 +90,7 @@ def generate_token_for_github_take_kt(
             'participantToken': token.to_jwt(),
             'conversation_type':"bot_takes_kt_from_employee",
             'serverUrl': livekit_server_url,
-
+            'give_kt_new_id': give_kt_new.id,
             'user_id':current_user.id,
             'user_email': current_user.email,
             'bot_type': 'github_give' 
@@ -184,7 +186,7 @@ def generate_token(
     db: Session = Depends(get_db)
 ):
     try:
-        print(current_user.id,current_user.email)
+        # print(current_user.id,current_user.email)
         topic = next_incomplete_topic(current_user.id, db)
         room_name = current_user.email.split("@")[0]
         json_data = json.dumps({

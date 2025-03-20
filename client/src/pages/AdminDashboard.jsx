@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import StatsOverview from '../components/StatsOverview';
 import ProjectChart from '../components/ProjectChart';
 import EmployeeList from '../components/EmployeeList';
@@ -149,6 +150,25 @@ const AdminDashboard = () => {
 
   return (
     <div className={"space-y-6"}>
+      {/* KT Management Navigation */}
+      <div className="flex justify-between items-center bg-white p-6 rounded-lg shadow-md">
+        <h2 className="text-xl font-semibold text-gray-800">Knowledge Transfer Management</h2>
+        <div className="flex space-x-4">
+          <Link 
+            to="/assign_kt" 
+            className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+          >
+            Project KT Management
+          </Link>
+          <Link 
+            to="/assign_github_kt" 
+            className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+          >
+            GitHub KT Management
+          </Link>
+        </div>
+      </div>
+
       <StatsOverview 
         employeeCount={employees.length}
         projectCount={projectData.length}

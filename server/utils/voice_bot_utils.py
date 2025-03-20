@@ -48,7 +48,7 @@ async def get_kt_info_for_user(user_id):
         kt_info = db.query(models.KtInfo).filter(
             models.KtInfo.project_id == take_kt_session.project_id
         ).first()
-        print(kt_info)
+        # print(kt_info)
         return kt_info
     except Exception as err:
         if "No Take" in str(err):
@@ -87,7 +87,7 @@ def next_incomplete_topic(user_id, db):
             for topic in subject['topics']:
                 if topic['is_completed'] == 'false':
                     topic['subject'] = {"subject_name": subject['subject_name']}
-                    print(topic)
+                    # print(topic)
                     return topic
         return None
     except Exception as e:
