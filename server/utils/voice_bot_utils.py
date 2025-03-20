@@ -4,6 +4,39 @@ import json
 from fastapi import HTTPException,Depends
 from database import get_db
 
+async def get_commit_info_take_kt_from_user(user_id):
+    db =  next(get_db())
+    try:
+        give_kt_session = db.query(models.GiveKtNew).filter(
+            models.GiveKtNew.employee_id == user_id
+        ).first()
+        if not give_kt_session:
+            raise HTTPException(status_code=404,detail="No Give KT assigned to user")
+        return give_kt_session.commit_info
+    except Exception as err:
+        if "No Give" in str(err):
+            raise err
+        else:
+            raise HTTPException(status_code = 500,detail=str(err))
+
+
+async def get_conversation_info_github(kt_info_id):
+    db =  next(get_db())
+    try:
+        give_kt_session = db.query(models.KtInfoNew).filter(
+            models.KtInfoNew.id == kt_info_id 
+        ).first()
+        if not give_kt_session:
+            raise HTTPException(status_code=404,detail="No Take KT assigned to user")
+        return give_kt_session.kt_info
+
+    except Exception as err:
+        if "No Take" in str(err):
+            raise err
+        else:
+            raise HTTPException(status_code = 500,detail=str(err))
+
+
 async def get_kt_info_for_user(user_id):
     db =  next(get_db())
     try:

@@ -17,6 +17,88 @@ api_key = os.getenv('LIVEKIT_API_KEY')
 api_secret = os.getenv('LIVEKIT_API_SECRET')
 livekit_server_url = os.getenv('LIVEKIT_URL')
 
+@router.post("/generate_token/github_give_kt")
+def generate_token_for_github_give_kt( 
+    current_user: models.User = Depends(auth.get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    try:
+        take_kt_obj = db.query(models.TakeKtNew).filter(models.TakeKtNew.employee_id == current_user.id).first()
+        if not take_kt_obj:
+            raise HTTPException(status_code=404, detail='No TakeKT found for user')
+        give_kt_obj = db.query(models.GiveKtNew).filter(models.GiveKtNew.id == take_kt_obj.give_kt_new_id).first()
+
+        room_name = current_user.email.split("@")[0]
+        json_data = json.dumps({
+            'user_id':current_user.id,
+            'user_email': current_user.email,
+            'bot_type': 'github_take',
+            'kt_info_id': give_kt_obj.kt_info_id,
+        }) 
+        # print(json_data) 
+        token = api.AccessToken(api_key, api_secret) \
+            .with_identity(room_name) \
+            .with_name(room_name) \
+            .with_metadata(json_data) \
+            .with_grants(api.VideoGrants(
+                room_join=True,
+                room=room_name,
+            ))
+        # print(token.to_jwt())
+        return JSONResponse({
+            'participantToken': token.to_jwt(),
+            'conversation_type':"bot_gives_kt_to_employee",
+            'serverUrl': livekit_server_url,
+
+            'user_id':current_user.id,
+            'user_email': current_user.email,
+            'bot_type': 'github_take',
+            'kt_info_id': give_kt_obj.kt_info_id,
+        })
+    except Exception as e:
+        print(f"Error generating token: {e}")
+        if hasattr(e, 'detail') and e.detail.find("found"):
+            raise HTTPException(status_code=404, detail=str(e.detail))
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@router.post("/generate_token/github_take_kt")
+def generate_token_for_github_take_kt( 
+    current_user: models.User = Depends(auth.get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    try:
+
+        room_name = current_user.email.split("@")[0]
+        json_data = json.dumps({
+            'user_id':current_user.id,
+            'user_email': current_user.email,
+            'bot_type': 'github_give'
+        }) 
+        # print(json_data) 
+        token = api.AccessToken(api_key, api_secret) \
+            .with_identity(room_name) \
+            .with_name(room_name) \
+            .with_metadata(json_data) \
+            .with_grants(api.VideoGrants(
+                room_join=True,
+                room=room_name,
+            ))
+        # print(token.to_jwt())
+        return JSONResponse({
+            'participantToken': token.to_jwt(),
+            'conversation_type':"bot_takes_kt_from_employee",
+            'serverUrl': livekit_server_url,
+
+            'user_id':current_user.id,
+            'user_email': current_user.email,
+            'bot_type': 'github_give' 
+        })
+    except Exception as e:
+        print(f"Error generating token: {e}")
+        if hasattr(e, 'detail') and e.detail.find("found"):
+            raise HTTPException(status_code=404, detail=str(e.detail))
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.post("/generate_token/take_kt")
 def generate_token_for_take_kt( 
     current_user: models.User = Depends(auth.get_current_active_user),

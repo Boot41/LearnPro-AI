@@ -15,8 +15,7 @@ from livekit.agents import (
 )
 from livekit.agents.pipeline import VoicePipelineAgent
 from livekit.plugins import deepgram, openai, silero
-from ChatbotContext import SubjectContext, KTRecieveContext, KTGiveContext
-from utils.voice_bot_utils import get_kt_info_for_user
+from ChatbotContext import SubjectContext, KTRecieveContext, KTGiveContext, GitHubUserGivesKTContext, GitHubUserTakesKTContext
 
 load_dotenv()
 logger = logging.getLogger("voice-assistant")
@@ -36,7 +35,7 @@ async def entrypoint(ctx: JobContext):
 
     metadata = participant.metadata
     metadata = json.loads(metadata)
-
+    print("-------------------------------------------------",metadata)
     bot_type = metadata["bot_type"]
     greeting = ""
     if bot_type == "subject":
@@ -48,6 +47,12 @@ async def entrypoint(ctx: JobContext):
     elif bot_type == "kt_give":
         greeting = "Hey, We will be conducting a in depth knowledge transfer today. Let me know when you want to start."
         context = KTGiveContext(metadata)
+    elif bot_type == "github_give":
+        greeting = "Hey, We will be conducting a in depth knowledge transfer today. Let me know when you want to start."
+        context = GitHubUserGivesKTContext(metadata)
+    elif bot_type == "github_take":
+        greeting = "Hey, We will be conducting a in depth knowledge transfer today. Let me know when you want to start."
+        context = GitHubUserTakesKTContext(metadata)
     initial_context_prompt = await context.get_initial_context()
     initial_ctx = llm.ChatContext().append(
         role="system",
