@@ -9,8 +9,13 @@ def get_github_kt_give_prompt(commit_info):
         Updates: What specific improvements or modifications were implemented in that file?
         Make sure your questions guide the user to provide detailed information about both the file’s purpose and the changes that have occurred.
         Make sure you ask about all the files that are mentioned in the commit information.
-
+        
         After you have gatherd the information, you need prompt the user to end the call.
+
+        Strictly follow these two rules:
+        - WHILE TAKING FILE NAMES YOU SPACE THE NAMES BETWEEN THE / SYMBOL.
+        - MAKE SURE YOU USE WORDS THAT ARE EASY TO PRONOUNCE AND UNDERSTAND BY A VOICE BOT.
+        - TRY TO KEEP THE CONVERSATION HUMAN LIKE AND TRY NOT MENTIONING "COMMITS" OR "COMMIT" MESSAGES.
 
         Note: MAKE SURE YOU ONLY ASK OR ANSWER QUESTIONS IN THE BALLPARK OF THIS CONVERSATION NO OTHER OUT OF CONTEXT QUESTIONS ALLOWED
         """

@@ -62,7 +62,7 @@ export const KnowledgeTransfer = () => {
             <div className="flex-grow flex flex-col">
               <div className="flex items-center justify-between">
                 <span className="text-lg font-semibold">
-                  Give Knowledge Transfer
+                  Give Project Overview
                 </span>
                 <div
                   className={`px-4 py-2 rounded-full ${
@@ -97,14 +97,14 @@ export const KnowledgeTransfer = () => {
                         : "bg-indigo-600 hover:bg-indigo-700"
                     } rounded-md flex items-center justify-center`}
                   >
-                    Give K.T
+                    Give Overview
                   </button>
                 </div>
               </div>
             </div>
           </div>
         ) : (
-          <div>You do not have any assigned projects to knowledge transfer</div>
+          <div>You do not have any assigned projects to give overview</div>
         )}
       </div>
       <div className="bg-white rounded-lg w-[80%] shadow p-6">
@@ -120,7 +120,7 @@ export const KnowledgeTransfer = () => {
               {/* Top row: Title & Status */}
               <div className="flex items-center justify-between">
                 <span className="text-lg font-semibold">
-                  Take Knowledge Transfer
+                  Receive Project Overview
                 </span>
                 <div
                   className={`px-4 py-2 rounded-full ${
@@ -160,7 +160,7 @@ export const KnowledgeTransfer = () => {
                         : "bg-indigo-600 hover:bg-indigo-700"
                     } rounded-md flex items-center justify-center`}
                   >
-                    Take K.T
+                    Take Overview
                   </button>
                 </div>
               </div>
@@ -168,7 +168,7 @@ export const KnowledgeTransfer = () => {
           </div>
         ) : (
           <div>
-            You do not have any assigned projects to receive knowledge transfer
+            You do not have any assigned projects to receive overview 
           </div>
         )}
       </div>

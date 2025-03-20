@@ -51,7 +51,7 @@ const CustomControlBar = ({show_quite_quit, saveTranscripts}) => {
 
   return (
     <div className=" flex items-center space-x-4 relative w-fit bottom-4 left-1/2 transform  -translate-x-1/2 bg-zinc-800 rounded-xl p-3 shadow-lg">
-      <div className="lk-button-group w-[12rem]">
+      <div className="lk-button-group w-[14rem]">
           <TrackToggle
             source={Track.Source.Microphone}
             showIcon={showIcon}
@@ -70,12 +70,12 @@ const CustomControlBar = ({show_quite_quit, saveTranscripts}) => {
           </div>
         </div>
     {show_quite_quit && (
-      <button className="flex justify-center items-center w-[12rem] gap-2 hover:bg-zinc-700 rounded-2xl p-2 px-4" onClick={leaveQuietly}>
-        <PhoneOff className="text-gray-400" /> <span>Leave Quietly</span>
+      <button className="flex justify-center items-center w-[14rem] gap-2 hover:bg-zinc-700 rounded-2xl p-2 px-4" onClick={leaveQuietly}>
+        <PhoneOff className="text-gray-400" /> <span>Leave without saving</span>
       </button>
     )} 
-      <button className="flex justify-center items-center w-[12rem] gap-2 hover:bg-zinc-700 rounded-2xl p-2 px-4" onClick={endCall}>
-        <PhoneOff className="text-red-500" /> <span>End Call</span>
+      <button className="flex justify-center items-center w-[14rem] gap-2 hover:bg-zinc-700 rounded-2xl p-2 px-4" onClick={endCall}>
+        <PhoneOff className="text-red-500" /> <span>End Call and save</span>
       </button>
     </div>
   );

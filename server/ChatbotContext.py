@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from agent_prompts import get_study_prompt, get_kt_recieve_prompt, get_kt_give_prompt, get_github_kt_give_prompt, get_github_kt_recieve_prompt
 from utils.voice_bot_utils import get_commit_info_take_kt_from_user, get_conversation_info_github, get_kt_info_for_user
+from agent_prompts import get_kt_recieve_prompt_old
 
 class ChatbotContext(ABC):
     def __init__(self, metadata):
@@ -16,7 +17,7 @@ class SubjectContext(ChatbotContext):
 
 class KTRecieveContext(ChatbotContext):
     async def get_initial_context(self) -> str: 
-        return (get_kt_recieve_prompt(self.metadata['project_name']))
+        return (get_kt_recieve_prompt_old(self.metadata['project_name']))
 
 class KTGiveContext(ChatbotContext):
     async def get_initial_context(self) -> str: 

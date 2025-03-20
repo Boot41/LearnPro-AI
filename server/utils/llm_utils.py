@@ -160,7 +160,7 @@ def generate_subjects_from_dependencies(dependencies):
     # print(subjects)
     return subjects
 
-def generate_digested_transcripts(raw_transcripts):
+def generate_digested_transcripts_old(raw_transcripts):
     prompt = f"""
     You are provided with a transcript of a conversation between a voice-based AI agent and a project team member. The transcript is an array of strings that covers what is the problem and its solution, in what files we can find the solution, what are the challenges and pitfalls, and what are the additional considerations while working on this project .
 
@@ -205,7 +205,7 @@ def generate_digested_transcripts_github(raw_transcripts):
     data = groq_calling_function_string(prompt)
     return data
 
-def generate_digested_transcripts_old(raw_transcripts):
+def generate_digested_transcripts(raw_transcripts):
     prompt = f"""
     You are provided with a transcript of a conversation between a voice-based AI agent and a project team member. The transcript is an array of strings that covers various aspects of the project, including product overview, business context, product history, system architecture, technology stack, development process, security, monitoring, team collaboration, known issues, future roadmap, and more.
 

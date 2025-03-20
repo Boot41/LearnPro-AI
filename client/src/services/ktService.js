@@ -5,9 +5,9 @@ export const saveGithubGivenKtTranscripts = async (transcripts,give_kt_id)=>{
     console.log(give_kt_id)
     const data = {
       "kt_transcripts":transcripts,
-      "give_kt_id":give_kt_id
+      "give_kt_new_id":give_kt_id
     }
-    const response = await post("/api/give_kt/save-kt-info",data) 
+    const response = await post("/api/give_github_kt/save-kt-info",data) 
     return response
   } catch (error) {
     console.error(error) 
